@@ -180,6 +180,17 @@ export interface TimePickerConfig {
 
 export type TimeRangePickerConfig = TimePickerConfig
 
+export interface Upload {
+  multiple: boolean
+  dragable: boolean
+  directory: boolean
+  disabled: boolean
+  name: string
+  parallel: boolean
+  withCredentials: boolean
+  requestMethod: string
+}
+
 // Data Display
 export interface AvatarConfig {
   gap: number
@@ -409,6 +420,7 @@ export interface GlobalConfig {
   select: SelectConfig
   timePicker: TimePickerConfig
   timeRangePicker: TimeRangePickerConfig
+  upload: Upload
   // Data Display
   avatar: AvatarConfig
   badge: BadgeConfig

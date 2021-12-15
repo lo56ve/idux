@@ -59,6 +59,7 @@ import { IxTimeline, IxTimelineItem } from '@idux/components/timeline'
 import { IxTooltip } from '@idux/components/tooltip'
 import { IxTree } from '@idux/components/tree'
 import { IxTypography } from '@idux/components/typography'
+import { IxUpload } from '@idux/components/upload'
 import { version } from '@idux/components/version'
 
 const components = [
@@ -141,6 +142,7 @@ const components = [
   IxTimelineItem,
   IxTooltip,
   IxTree,
+  IxUpload,
 ]
 
 const directives: Record<string, Directive> = {

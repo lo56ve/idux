@@ -53,6 +53,7 @@ import type {
   TimeRangePickerConfig,
   TooltipConfig,
   TreeConfig,
+  Upload
 } from './types'
 
 import { numFormatter } from './numFormatter'
@@ -188,6 +189,17 @@ const timeRangePicker: TimeRangePickerConfig = {
   suffix: 'clock-circle',
   allowInput: true,
   format: 'HH:mm:ss',
+}
+
+const upload: Upload = {
+  multiple: false,
+  dragable: false,
+  directory: false,
+  disabled: false,
+  name: 'file',
+  parallel: true,
+  withCredentials: false,
+  requestMethod: 'post',
 }
 
 // --------------------- Data Display ---------------------
@@ -385,6 +397,7 @@ export const defaultConfig: GlobalConfig = {
   textarea,
   timePicker,
   timeRangePicker,
+  upload,
   // Data Display
   avatar,
   badge,
