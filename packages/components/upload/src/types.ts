@@ -66,7 +66,7 @@ export const uploadProps = {
   requestHeaders: IxPropTypes.object<UploadRequestHeader>(),
   requestMethod: IxPropTypes.string,
   'onUpdate:files': IxPropTypes.emit<(fileList: UploadFile[]) => void>(),
-  onSelect: IxPropTypes.emit<(file: File | File[]) => boolean | Promise<boolean>>(),
+  onSelect: IxPropTypes.emit<(file: UploadFile[]) => boolean | UploadFile[] | Promise<boolean | UploadFile[]>>(),
   onFileStatusChange: IxPropTypes.emit<(file: UploadFile) => void>(),
   onBeforeUpload: IxPropTypes.emit<(file: UploadFile | UploadFile[]) => boolean | Promise<boolean>>(),
   onRequestChange: IxPropTypes.emit<(option: UploadRequestChangeOption) => void>(),

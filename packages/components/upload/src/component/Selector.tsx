@@ -57,5 +57,5 @@ function onClick(fileInputRef: Ref<HTMLInputElement | null>, props: UploadSelect
 
 function onSelect(fileInputRef: Ref<HTMLInputElement | null>, props: UploadSelectorProps) {
   const files = Array.prototype.slice.call(fileInputRef.value?.files ?? []) as File[]
-  callEmit(props.onSelect, files)
+  files.length > 0 && callEmit(props.onSelect, files)
 }
