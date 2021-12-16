@@ -94,6 +94,6 @@ export const uploadFileListProps = {
 
 export const uploadSelectorProps = {
   ...pick(uploadProps, ['accept', 'directory', 'disabled', 'multiple']),
-  onSelect: IxPropTypes.emit<(file: File[]) => File[]>(),
+  onSelect: IxPropTypes.emit<(file: File[]) => Promise<void>>(),
 }
 export type UploadSelectorProps = IxInnerPropTypes<typeof uploadSelectorProps>
