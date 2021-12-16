@@ -48,7 +48,11 @@ async function onSelect(
   const allowedFiles = handleCountCheck(props, fileSelected, files)
   const handleResult = await callEmit(props.onSelect, allowedFiles)
   const readyUploadFiles = getHandledFiles(handleResult!, allowedFiles)
-  console.log(readyUploadFiles)
+  if (props.maxCount === 1) {
+    setFiles(readyUploadFiles)
+  } else {
+    setFiles(files.value.concat(readyUploadFiles))
+  }
 }
 
 function handleCountCheck(props: UploadProps, fileSelected: File[], files: ComputedRef<UploadFile[]>) {
