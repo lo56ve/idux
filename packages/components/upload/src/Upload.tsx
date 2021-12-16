@@ -8,14 +8,14 @@
 import type { UploadFile, UploadFileStatus, UploadProps } from './types'
 import type { ComputedRef } from 'vue'
 
-import { computed, defineComponent } from 'vue'
+import { computed, defineComponent, provide } from 'vue'
 
 import { pick } from 'lodash-es'
 
 import { callEmit, useControlledProp } from '@idux/cdk/utils'
-import { useGlobalConfig } from '@idux/components/config'
 
 import FileSelector from './component/Selector'
+import { uploadToken } from './token'
 import { uploadProps } from './types'
 import { getFileInfo } from './util/file'
 
@@ -24,13 +24,16 @@ export default defineComponent({
   props: uploadProps,
   setup(props, { slots }) {
     const selectProps = useSelectorProp(props)
-    const config = useGlobalConfig('upload')
     const [files, setFiles] = useControlledProp(props, 'files', [])
+    provide(uploadToken, { files })
 
     return () => (
-      <FileSelector {...selectProps.value} onSelect={fileSelected => onSelect(props, fileSelected, files, setFiles)}>
-        {slots.default?.()}
-      </FileSelector>
+      <div>
+        <FileSelector {...selectProps.value} onSelect={fileSelected => onSelect(props, fileSelected, files, setFiles)}>
+          {slots.default?.()}
+        </FileSelector>
+        {slots.list?.()}
+      </div>
     )
   },
 })
@@ -46,7 +49,7 @@ async function onSelect(
   setFiles: (files: UploadFile[]) => void,
 ) {
   const allowedFiles = handleCountCheck(props, fileSelected, files)
-  const handleResult = await callEmit(props.onSelect, allowedFiles)
+  const handleResult = props.onSelect ? await callEmit(props.onSelect, allowedFiles) : allowedFiles
   const readyUploadFiles = getHandledFiles(handleResult!, allowedFiles)
   if (props.maxCount === 1) {
     setFiles(readyUploadFiles)

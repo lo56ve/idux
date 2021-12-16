@@ -1,0 +1,35 @@
+.@{upload-prefix}-list {
+  margin: @upload-list-margin;
+
+  &-text {
+    border: @upload-list-text-border;
+
+    .@{upload-prefix}-file {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+      border-bottom: @upload-file-border-bottom;
+
+      &:last-child {
+        border: 0;
+      }
+
+      .@{upload-prefix}-icon {
+
+        &-file {
+          margin: @upload-icon-file-margin;
+        }
+
+        &-remove, &-retry, &-download, &-preview {
+          cursor: pointer;
+          margin: @upload-icon-margin;
+          color: @color-graphite-base;
+
+          &:hover {
+            color: @color-graphite-d10;
+          }
+        }
+      }
+    }
+  }
+}

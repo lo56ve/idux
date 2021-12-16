@@ -6,7 +6,7 @@
  */
 
 import type { IxInnerPropTypes, IxPublicPropTypes, VKey } from '@idux/cdk/utils'
-import type { DefineComponent, HTMLAttributes } from 'vue'
+import type { ComputedRef, DefineComponent, HTMLAttributes } from 'vue'
 
 import { pick } from 'lodash-es'
 
@@ -15,8 +15,9 @@ import { IxPropTypes } from '@idux/cdk/utils'
 type DataType = Record<string, unknown>
 export type UploadRequestHeader = Record<string, string>
 export type UploadRequestMethod = 'POST' | 'PUT' | 'PATCH' | 'post' | 'put' | 'patch'
-export type UploadFileStatus = 'illegal' | 'selected' | 'uploading' | 'error' | 'success' | 'removed'
 export type UploadRequestStatus = 'loadstart' | 'progress' | 'abort' | 'error' | 'load' | 'timeout' | 'loadend'
+export type UploadFileStatus = 'illegal' | 'selected' | 'uploading' | 'error' | 'success' | 'removed'
+export type UploadListType = 'text' | 'image' | 'imageCard'
 export interface UploadProgressEvent extends Partial<ProgressEvent> {
   percent?: number
 }
@@ -76,7 +77,7 @@ export type UploadPublicProps = IxPublicPropTypes<typeof uploadProps>
 export type UploadComponent = DefineComponent<Omit<HTMLAttributes, keyof UploadPublicProps> & UploadPublicProps>
 export type UploadInstance = InstanceType<DefineComponent<UploadProps>>
 
-export const uploadFileListProps = {
+export const uploadListProps = {
   type: IxPropTypes.oneOf(['text', 'image', 'imageCard']),
   icon: IxPropTypes.shape({
     file: IxPropTypes.oneOfType([String, Boolean, IxPropTypes.vNode]),
@@ -91,9 +92,19 @@ export const uploadFileListProps = {
   onRemove: IxPropTypes.emit<(file: UploadFile) => boolean | Promise<boolean>>(),
   onRetry: IxPropTypes.emit<(file: UploadFile) => boolean | Promise<boolean>>(),
 }
+export type UploadListProps = IxInnerPropTypes<typeof uploadListProps>
+export type UploadListPublicProps = IxPublicPropTypes<typeof uploadListProps>
+export type UploadListComponent = DefineComponent<
+  Omit<HTMLAttributes, keyof UploadListPublicProps> & UploadListPublicProps
+>
+export type UploadListInstance = InstanceType<DefineComponent<UploadListProps>>
 
 export const uploadSelectorProps = {
   ...pick(uploadProps, ['accept', 'directory', 'disabled', 'multiple']),
   onSelect: IxPropTypes.emit<(file: File[]) => Promise<void>>(),
 }
 export type UploadSelectorProps = IxInnerPropTypes<typeof uploadSelectorProps>
+
+export interface UploadToken {
+  files: ComputedRef<UploadFile[]>
+}

@@ -1,9 +1,23 @@
-import type { UploadComponent } from './src/types'
+/**
+ * @license
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
+ */
 
+import type { UploadComponent, UploadListComponent } from './src/types'
+
+import UploadList from './src/List'
 import Upload from './src/Upload'
 
 const IxUpload = Upload as unknown as UploadComponent
+const IxUploadList = UploadList as unknown as UploadListComponent
 
-export { IxUpload }
+export { IxUpload, IxUploadList }
 
-export type { UploadInstance, UploadPublicProps as UploadProps } from './src/types'
+export type {
+  UploadInstance,
+  UploadPublicProps as UploadProps,
+  UploadListInstance,
+  UploadListPublicProps as UploadListProps,
+} from './src/types'
