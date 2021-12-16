@@ -45,7 +45,7 @@ order: 0
 | --- | --- | --- | --- | --- | --- |
 | `type` | 展示的形式 | `text \| image \| imageCard` | - | - | - |
 | `thumb` | 展示的缩略图，false不展示缩略图，string作为缩略图url | `false \| ((file: UpLoadFile) => string \| false \| Promise<string \| false>)` | -        | -        | -    |
-| `icon` | 展示的icon   | `Record<file \| preview \| download \| remove \| retry, string \| boolean \| VNode `>  | `{file: 'paper-clip', download: false, remove: 'close', retry: 'reload'}` | -        | -    |
+| `icon` | 展示的icon   | `Record<file \| preview \| download \| remove \| retry, string \| boolean \| VNode `>  | `{file: 'paper-clip', preview: 'eye', download: 'download', remove: 'close', retry: 'reload'}` | -        | -    |
 | `onDownload`   | 点击下载文件时的回调，如果没有指定，则默认跳转到文件 url 对应的标签页。<br />返回值为 false 时不移除，支持返回一个 Promise 对象，Promise 对象 resolve(false) 或 reject 时不允许下载 | `(file: UploadFile) => boolean \| Promise<boolean>` | -            | -        | -    |
 | `onPreview`    | 点击文件链接或预览图标时的回调，返回值同上                   | `(file: UploadFile) => boolean \| Promise<boolean>` | -            | -        | -    |
 | `onRemove`     | 点击移除文件时的回调，返回值同上                             | `(file: UploadFile) => boolean \| Promise<boolean>` | -            | -        | -    |
@@ -57,7 +57,7 @@ order: 0
 | 名称       | 说明                     | 参数类型                                 | 备注 |
 | ---------- | ------------------------ | ---------------------------------------- | ---- |
 | `default`  | 上传组件选择器的展示形式 | `slotProp`                               |      |
-| `fileList` | 文件列表自定义渲染       | `{fileList: UploadFile[], opr: FileOpr}` | -    |
+| `list` | 文件列表自定义渲染       | `{fileList: UploadFile[], opr: FileOpr}` | -    |
 | `tip`      | 上传提示区               | -                                        | -    |
 
 ```typescript

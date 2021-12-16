@@ -11,8 +11,8 @@ import type { Ref } from 'vue'
 import { computed, defineComponent, ref } from 'vue'
 
 import { callEmit } from '@idux/cdk/utils'
-import { useGlobalConfig } from '@idux/components/config'
 
+import { useCmpClasses } from '../composables/useClasses'
 import { uploadSelectorProps } from '../types'
 
 export default defineComponent({
@@ -20,13 +20,14 @@ export default defineComponent({
   props: uploadSelectorProps,
   setup(props, { slots }) {
     const dir = useDir(props)
-    const commonCfg = useGlobalConfig('common')
-    const inputClasses = computed(() => `${commonCfg.prefixCls}-upload-input`)
+    const cpmClasses = useCmpClasses()
+    const inputClasses = computed(() => `${cpmClasses.value}-input`)
+    const selectorClasses = computed(() => `${cpmClasses.value}-selector`)
     const fileInputRef: Ref<HTMLInputElement | null> = ref(null)
 
     return () => {
       return (
-        <div onClick={() => onClick(fileInputRef, props)}>
+        <div class={selectorClasses.value} onClick={() => onClick(fileInputRef, props)}>
           <input
             {...dir.value}
             class={inputClasses.value}
