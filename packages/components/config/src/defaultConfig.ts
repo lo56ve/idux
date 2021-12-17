@@ -53,7 +53,7 @@ import type {
   TimeRangePickerConfig,
   TooltipConfig,
   TreeConfig,
-  Upload
+  Upload,
 } from './types'
 
 import { numFormatter } from './numFormatter'
@@ -200,6 +200,7 @@ const upload: Upload = {
   parallel: true,
   withCredentials: false,
   requestMethod: 'post',
+  listType: 'text',
 }
 
 // --------------------- Data Display ---------------------

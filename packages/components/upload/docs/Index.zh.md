@@ -18,7 +18,7 @@ order: 0
 | --- | --- | --- | --- | --- | --- |
 | `v-model:files` | 文件列表 | `UploadFile[]` | `[]` | -  | - |
 | `accept` | 允许上传的文件类型，详见[原生input accept](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/input/file) | `string` | - | - | - |
-| `action` | 上传文件的地址，必填 | `string \| (file: UploadFile) => Promise<string> `  | - | - | - |
+| `action` | 上传文件的地址，必填 | `string \| (file: UploadFile) => Promise<string>`  | - | - | - |
 | `maxCount` | 限制上传文件的数量。当为 1 时，始终用最新上传的文件代替当前文件 | `number` | -  | -  | - |
 | `multiple` | 是否支持多选文件，开启后按住 ctrl 可选择多个文件 | `boolean` | `false` | - | - |
 | `dragable` | 是否启用拖拽上传 | `boolean` | `false` | -  | - |
@@ -31,11 +31,10 @@ order: 0
 | `requestData` | 上传附加的参数  | `Record<string, unknown> \| ((file: UploadFile) => Record<string, unknown> \| Promise<Record<string, unknown>>)` | - | - | - |
 | `requestHeaders` | 设置上传请求的请求头  | `object` | -  | -  | -  |
 | `requestMethod` | 上传请求的http method | `string` | `post` | -  | - |
-| `onSelect` | 选中文件时钩子 | `(file: UploadFile[]) => boolean \| UploadFile[] \| Promise<boolean \| UploadFile[]>` | `() => true` | - | - |
+| `onSelect` | 选中文件时钩子 | `(file: File) => boolean \| File \| Promise<boolean \| File>` | `() => true` | - | - |
 | `onFileStatusChange` | 上传文件改变时的状态 | `(file: UploadFile) => void` | - | - | - |
 | `onBeforeUpload`   | 文件上传前的钩子，根据返回结果是否上传<br />返回`false`阻止上传<br />返回`Promise`对象`reject`时停止上传<br />返回`Promise`对象`resolve`时开始上传 | `(file: UploadFile \| UploadFile[]) => boolean \| Promise<boolean>` | `() => true` | -        | -    |
 | `onRequestChange` | 请求状态改变的钩子 | `(option: UploadRequestChangeParam) => void` | - | - | - |
-
 
 ### IxUploadFiles 上传文件列表展示
 
@@ -45,19 +44,18 @@ order: 0
 | --- | --- | --- | --- | --- | --- |
 | `type` | 展示的形式 | `text \| image \| imageCard` | - | - | - |
 | `thumb` | 展示的缩略图，false不展示缩略图，string作为缩略图url | `false \| ((file: UpLoadFile) => string \| false \| Promise<string \| false>)` | -        | -        | -    |
-| `icon` | 展示的icon   | `Record<file \| preview \| download \| remove \| retry, string \| boolean \| VNode `>  | `{file: 'paper-clip', preview: 'eye', download: 'download', remove: 'close', retry: 'reload'}` | -        | -    |
+| `icon` | 展示的icon   | `Record<file \| preview \| download \| remove \| retry, string \| boolean \| VNode`>  | `{file: 'paper-clip', download: false, remove: 'close', retry: 'reload'}` | -        | -    |
 | `onDownload`   | 点击下载文件时的回调，如果没有指定，则默认跳转到文件 url 对应的标签页。<br />返回值为 false 时不移除，支持返回一个 Promise 对象，Promise 对象 resolve(false) 或 reject 时不允许下载 | `(file: UploadFile) => boolean \| Promise<boolean>` | -            | -        | -    |
 | `onPreview`    | 点击文件链接或预览图标时的回调，返回值同上                   | `(file: UploadFile) => boolean \| Promise<boolean>` | -            | -        | -    |
 | `onRemove`     | 点击移除文件时的回调，返回值同上                             | `(file: UploadFile) => boolean \| Promise<boolean>` | -            | -        | -    |
 | `onRetry`      | 点击重新上传时的回调，返回值同上                             | `(file: UploadFile) => boolean \| Promise<boolean>` | -            | -        | -    |
-
 
 #### IxUploadSlots
 
 | 名称       | 说明                     | 参数类型                                 | 备注 |
 | ---------- | ------------------------ | ---------------------------------------- | ---- |
 | `default`  | 上传组件选择器的展示形式 | `slotProp`                               |      |
-| `list` | 文件列表自定义渲染       | `{fileList: UploadFile[], opr: FileOpr}` | -    |
+| `fileList` | 文件列表自定义渲染       | `{fileList: UploadFile[], opr: FileOpr}` | -    |
 | `tip`      | 上传提示区               | -                                        | -    |
 
 ```typescript
@@ -95,3 +93,10 @@ interface UploadRequestChangeOption {
   e?: ProgressEvent
 }
 ```
+
+
+
+1. 超出maxCount时，是否提示？提示是否采用onFileStatusChange（原意是用于已经加入的文件状态变化）
+2. 在多文件上传的情况下每个文件都会触发一次onChange，导致事件太多，是否需要处理
+3. 缩略图可以在onSelect时设置，也可以在files上面直接设置
+4. 文件列表时的链接色代表是下载还是预览，什么情况下展示
