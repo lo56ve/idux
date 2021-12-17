@@ -26,7 +26,7 @@ type Icons = keyof typeof iconMap
 
 export type IconsMap = Record<Icons, Exclude<IconNodeType, true>>
 
-export function getIconNode(icon: iconNodeType): VNode | null {
+export function getIconNode(icon: Exclude<IconNodeType, true>): VNode | null {
   if (icon === false) {
     return null
   }
@@ -37,13 +37,14 @@ export function getIconNode(icon: iconNodeType): VNode | null {
 }
 
 export function getIcons(iconProp: Partial<Record<Icons, IconNodeType>>): IconsMap {
-  const iconFormat: IconsMap = {}
-  for (const icon in iconMap) {
+  const iconFormat = {} as IconsMap
+  let icon: Icons
+  for (icon in iconMap) {
     // 默认值
     if (iconProp[icon] === true || isUndefined(iconProp[icon])) {
       iconFormat[icon] = iconMap[icon]
     } else {
-      iconFormat[icon] = iconProp[icon]
+      iconFormat[icon] = iconProp[icon] as Exclude<IconNodeType, true>
     }
   }
   return iconFormat

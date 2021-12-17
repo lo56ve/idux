@@ -5,49 +5,62 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { UploadFile, UploadListProps } from '../types'
+import type { UploadFile } from '../types'
 import type { IconsMap } from '../util/icon'
 import type { ComputedRef } from 'vue'
 
 import { defineComponent, inject } from 'vue'
 
+import { IxIcon } from '@idux/components/icon'
+
 import { useCmpClasses, useListClasses } from '../composables/useClasses'
 import { useIcon } from '../composables/useIcon'
-import { uploadToken } from '../token'
+import { UploadToken, uploadToken } from '../token'
 import { uploadListProps } from '../types'
+import { getThumbNode } from '../util/file'
 import { getIconNode } from '../util/icon'
+import FileSelector from './Selector'
 
 export default defineComponent({
-  name: 'IxUploadImageList',
+  name: 'IxUploadImageCardList',
   props: uploadListProps,
-  setup(props) {
-    const icons = useIcon(props)
+  setup() {
+    const { props: uploadProps } = inject(uploadToken, { props: { files: [] } } as unknown as UploadToken)
+    const icons = useIcon(uploadProps)
     const cpmClasses = useCmpClasses()
-    const listClasses = useListClasses('text')
-    const { files } = inject(uploadToken, {
-      files: { value: [] } as ComputedRef<[]>,
-    })
+    const listClasses = useListClasses('imageCard')
 
-    return () =>
-      files.value.length > 0 && (
-        <ul class={listClasses.value}>{files.value.map(file => renderItem(file, icons, cpmClasses))}</ul>
-      )
+    return () => (
+      <ul class={listClasses.value}>
+        {renderSelector(cpmClasses)}
+        {uploadProps.files.map(file => renderItem(file, icons, cpmClasses))}
+      </ul>
+    )
   },
 })
 
 function renderItem(file: UploadFile, icons: ComputedRef<IconsMap>, cpmClasses: ComputedRef<string>) {
   return (
     <li class={`${cpmClasses.value}-file`}>
-      <span>
-        <span class={`${cpmClasses.value}-icon-file`}>{getIconNode(icons.value.file)}</span>
-        <span>{file.name}</span>
-      </span>
-      <span>
-        <span class={`${cpmClasses.value}-icon-retry`}>{getIconNode(icons.value.retry)}</span>
+      {getThumbNode(file)}
+      <div class={`${cpmClasses.value}-icon`}>
         <span class={`${cpmClasses.value}-icon-preview`}>{getIconNode(icons.value.preview)}</span>
+        <span class={`${cpmClasses.value}-icon-retry`}>{getIconNode(icons.value.retry)}</span>
         <span class={`${cpmClasses.value}-icon-download`}>{getIconNode(icons.value.download)}</span>
         <span class={`${cpmClasses.value}-icon-remove`}>{getIconNode(icons.value.remove)}</span>
-      </span>
+      </div>
     </li>
+  )
+}
+
+// function renderUploadingNode() {
+//   return <div></div>
+// }
+
+function renderSelector(cpmClasses: ComputedRef<string>) {
+  return (
+    <FileSelector class={`${cpmClasses.value}-selector`}>
+      <IxIcon name="plus"></IxIcon>
+    </FileSelector>
   )
 }

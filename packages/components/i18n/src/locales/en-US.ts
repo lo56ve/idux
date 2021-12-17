@@ -89,6 +89,16 @@ const enUS: Locale = {
     separator: 'To',
     placeholder: ['Start time', 'End time'],
   },
+  upload: {
+    uploading: 'Uploading...',
+    error: 'Upload error',
+    cancel: 'Cancel Upload',
+    preview: 'Preview file',
+    removeImage: 'Remove file',
+    removeFile: 'Remove file',
+    retry: 'Reupload',
+    download: 'Download file',
+  },
 }
 
 export default enUS

@@ -55,7 +55,7 @@ import type {
   TooltipConfig,
   TreeConfig,
   TreeSelectConfig,
-  Upload
+  Upload,
 } from './types'
 
 import { numFormatter } from './numFormatter'
@@ -210,6 +210,7 @@ const upload: Upload = {
   parallel: true,
   withCredentials: false,
   requestMethod: 'post',
+  listType: 'text',
 }
 
 // --------------------- Data Display ---------------------

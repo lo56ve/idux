@@ -28,6 +28,7 @@ import type { StepperSize } from '@idux/components/stepper'
 import type { TableColumnAlign, TableColumnSortOrder, TablePaginationPosition, TableSize } from '@idux/components/table'
 import type { TagShape } from '@idux/components/tag'
 import type { TextareaAutoRows, TextareaResize } from '@idux/components/textarea'
+import type { UploadListType, UploadRequestMethod } from '@idux/components/upload'
 import type { VNode } from 'vue'
 
 // Common
@@ -198,7 +199,8 @@ export interface Upload {
   name: string
   parallel: boolean
   withCredentials: boolean
-  requestMethod: string
+  requestMethod: UploadRequestMethod
+  listType: UploadListType
 }
 
 // Data Display
