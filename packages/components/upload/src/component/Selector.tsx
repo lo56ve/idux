@@ -20,9 +20,14 @@ import { uploadToken } from '../token'
 export default defineComponent({
   name: 'IxUploadSelector',
   setup(props, { slots }) {
-    const { props: uploadProps, onUpdateFiles } = inject(uploadToken, {
+    const {
+      props: uploadProps,
+      onUpdateFiles,
+      startUpload,
+    } = inject(uploadToken, {
       props: {},
       onUpdateFiles: () => {},
+      startUpload: () => {},
     } as unknown as UploadToken)
     const dir = useDir(uploadProps)
     const cpmClasses = useCmpClasses()
@@ -41,7 +46,7 @@ export default defineComponent({
             accept={uploadProps.accept}
             multiple={uploadProps.multiple}
             onClick={e => e.stopPropagation()}
-            onChange={() => onSelect(fileInputRef, uploadProps, onUpdateFiles)}
+            onChange={() => onSelect(fileInputRef, uploadProps, onUpdateFiles, startUpload)}
           />
           {slots.default?.()}
         </div>
@@ -65,6 +70,7 @@ async function onSelect(
   fileInputRef: Ref<HTMLInputElement | null>,
   props: UploadProps,
   onUpdateFiles: UploadToken['onUpdateFiles'],
+  startUpload: UploadToken['startUpload'],
 ) {
   const files = Array.prototype.slice.call(fileInputRef.value?.files ?? []) as File[]
   if (files.length === 0) {
@@ -78,6 +84,7 @@ async function onSelect(
   } else {
     callEmit(onUpdateFiles, props.files.concat(readyUploadFiles))
   }
+  startUpload(readyUploadFiles)
 }
 
 function handleCountCheck(props: UploadProps, fileSelected: File[], files: UploadFile[]) {

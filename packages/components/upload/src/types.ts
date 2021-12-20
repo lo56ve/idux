@@ -14,38 +14,47 @@ type DataType = Record<string, unknown>
 export type UploadRequestHeader = Record<string, string>
 export type UploadRequestMethod = 'POST' | 'PUT' | 'PATCH' | 'post' | 'put' | 'patch'
 export type UploadRequestStatus = 'loadstart' | 'progress' | 'abort' | 'error' | 'load' | 'timeout' | 'loadend'
-export type UploadFileStatus = 'illegal' | 'selected' | 'uploading' | 'error' | 'success' | 'removed'
+export type UploadFileStatus = 'illegal' | 'selected' | 'uploading' | 'error' | 'success' | 'abort'
 export type UploadListType = 'text' | 'image' | 'imageCard'
 export type UploadIconType = 'file' | 'preview' | 'download' | 'remove' | 'retry'
-export interface UploadProgressEvent extends Partial<ProgressEvent> {
+export interface UploadProgressEvent extends ProgressEvent {
   percent?: number
 }
-export interface UploadFile extends File {
+export interface UploadRequestError extends Error {
+  status?: number
+  method?: UploadRequestMethod
+  url?: string
+}
+export interface RawFile extends File {
+  uid: VKey
+}
+export interface UploadFile {
   uid: VKey
   name: string
+  raw: RawFile
   status?: UploadFileStatus
+  error?: Error
   thumbUrl?: string
   downloadUrl?: string
   percent?: number
-  xhr?: XMLHttpRequest
   response?: Response // todo，单个文件的响应
 }
-export interface UploadRequestOption {
+export interface UploadRequestOption<T = any> {
   onProgress?: (event: UploadProgressEvent) => void
-  onEnd?: (res: Response, xhr: XMLHttpRequest) => void // todo
-  data?: DataType
-  filename?: string
+  onError?: (event: UploadRequestError | ProgressEvent, body?: T) => void
+  onSuccess?: (body: T) => void
+  filename: string
   file: UploadFile
   withCredentials?: boolean
   action: string
-  headers?: UploadRequestHeader
-  method: UploadRequestMethod
+  requestHeaders?: UploadRequestHeader
+  requestMethod: UploadRequestMethod
+  requestData?: DataType
 }
 export interface UploadRequestChangeOption {
   file: UploadFile
   status: UploadRequestStatus
-  res?: Response
-  xhr?: XMLHttpRequest
+  response?: Response
   e?: ProgressEvent
 }
 
@@ -60,7 +69,7 @@ export const uploadProps = {
   multiple: IxPropTypes.bool,
   name: IxPropTypes.string,
   parallel: IxPropTypes.bool,
-  customRequest: IxPropTypes.func<(option: UploadRequestOption) => void>(),
+  customRequest: IxPropTypes.func<(option: UploadRequestOption) => { abort: () => void }>(),
   withCredentials: IxPropTypes.bool,
   requestData: IxPropTypes.oneOfType<DataType | ((file: UploadFile) => DataType | Promise<DataType>)>([{}, () => ({})]),
   requestHeaders: IxPropTypes.object<UploadRequestHeader>(),
@@ -68,7 +77,7 @@ export const uploadProps = {
   'onUpdate:files': IxPropTypes.emit<(fileList: UploadFile[]) => void>(),
   onSelect: IxPropTypes.emit<(file: UploadFile[]) => boolean | UploadFile[] | Promise<boolean | UploadFile[]>>(),
   onFileStatusChange: IxPropTypes.emit<(file: UploadFile) => void>(),
-  onBeforeUpload: IxPropTypes.emit<(file: UploadFile | UploadFile[]) => boolean | Promise<boolean>>(),
+  onBeforeUpload: IxPropTypes.emit<(file: UploadFile) => boolean | RawFile | Promise<boolean | RawFile>>(),
   onRequestChange: IxPropTypes.emit<(option: UploadRequestChangeOption) => void>(),
 }
 export type UploadProps = IxInnerPropTypes<typeof uploadProps>
