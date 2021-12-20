@@ -5,24 +5,34 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { UploadFile } from '../types'
+import type { RawFile, UploadFile, UploadFileStatus } from '../types'
 import type { VNode } from 'vue'
 
 import { h } from 'vue'
 
 import { isString } from 'lodash-es'
 
-import { uniqueId } from '@idux/cdk/utils'
+import { callEmit, uniqueId } from '@idux/cdk/utils'
 
-export function getFileInfo(file: File | UploadFile, options: Partial<UploadFile> = {}): UploadFile {
-  const uid = (file as UploadFile)?.uid ?? uniqueId()
-  return Object.assign(
-    file,
-    {
-      uid,
-    },
-    options,
-  )
+export function getFileInfo(file: File, options: Partial<UploadFile> = {}): UploadFile {
+  const uid = uniqueId()
+  return {
+    uid,
+    name: file.name,
+    raw: Object.assign(file, { uid }),
+    percent: 0,
+    ...options,
+  }
+}
+
+export function getTargetFile(file: RawFile, files: UploadFile[]): UploadFile | null {
+  const matchKey = file.uid !== undefined ? 'uid' : 'name'
+  return files.find(item => item[matchKey] === file[matchKey])
+}
+
+export function getTargetFileIndex(file: RawFile, files: UploadFile[]): number {
+  const matchKey = file.uid !== undefined ? 'uid' : 'name'
+  return files.findIndex(item => item[matchKey] === file[matchKey])
 }
 
 // 图片缩略图
@@ -37,7 +47,7 @@ export function getThumbNode(file: UploadFile): VNode | null {
   if (!isImage(file)) {
     return null
   }
-  const thumbSrc = window.URL.createObjectURL(file)
+  const thumbSrc = window.URL.createObjectURL(file.raw)
   return h('img', {
     src: thumbSrc,
     alt: file.name,
@@ -47,5 +57,14 @@ export function getThumbNode(file: UploadFile): VNode | null {
 }
 
 export function isImage(file: UploadFile): boolean {
-  return !!file.type && file.type.startsWith('image/')
+  return !!file.raw.type && file.raw.type.startsWith('image/')
+}
+
+export function setFileStatus(
+  file: UploadFile,
+  status: UploadFileStatus,
+  onFileStatusChange?: (file: UploadFile) => void,
+): void {
+  file.status = status
+  onFileStatusChange && callEmit(onFileStatusChange, file)
 }

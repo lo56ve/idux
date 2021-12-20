@@ -67,14 +67,13 @@ interface UploadFile extends File {
   thumbUrl?: string  // 缩略图链接
   downloadUrl?: string  // 下载链接
   percent?: number // 上传进度
-  xhr?: XMLHttpRequest // xhr对象
   response?: Response // 服务端响应内容
 }
 
 // 自定义上传方法的参数
 interface UploadRequestOption {
   onProgress?: (event: UploadProgressEvent) => void
-  onEnd?: (res: Response, xhr: XMLHttpRequest) => void // todo
+  onEnd?: (res: Response) => void // todo
   data?: Record<string, unknown>
   filename?: string
   file: Exclude<UploadBeforeFileType, File | boolean> | UploadFile
@@ -89,7 +88,6 @@ interface UploadRequestChangeOption {
   file: UploadFile
   status: 'loadstart' | 'progress' | 'abort' | 'error' | 'load' | 'timeout' | 'loadend'
   res?: Response
-  xhr?: XMLHttpRequest
   e?: ProgressEvent
 }
 ```
