@@ -5,7 +5,7 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { RawFile, UploadFile, UploadFileStatus } from '../types'
+import type { UploadFile, UploadFileStatus } from '../types'
 import type { VNode } from 'vue'
 
 import { h } from 'vue'
@@ -25,12 +25,12 @@ export function getFileInfo(file: File, options: Partial<UploadFile> = {}): Uplo
   }
 }
 
-export function getTargetFile(file: RawFile, files: UploadFile[]): UploadFile | null {
+export function getTargetFile(file: UploadFile, files: UploadFile[]): UploadFile | undefined {
   const matchKey = file.uid !== undefined ? 'uid' : 'name'
   return files.find(item => item[matchKey] === file[matchKey])
 }
 
-export function getTargetFileIndex(file: RawFile, files: UploadFile[]): number {
+export function getTargetFileIndex(file: UploadFile, files: UploadFile[]): number {
   const matchKey = file.uid !== undefined ? 'uid' : 'name'
   return files.findIndex(item => item[matchKey] === file[matchKey])
 }
@@ -48,6 +48,7 @@ export function getThumbNode(file: UploadFile): VNode | null {
     return null
   }
   const thumbSrc = window.URL.createObjectURL(file.raw)
+  file.thumbUrl = thumbSrc
   return h('img', {
     src: thumbSrc,
     alt: file.name,
@@ -57,13 +58,13 @@ export function getThumbNode(file: UploadFile): VNode | null {
 }
 
 export function isImage(file: UploadFile): boolean {
-  return !!file.raw.type && file.raw.type.startsWith('image/')
+  return !!file.raw?.type && file.raw?.type.startsWith('image/')
 }
 
 export function setFileStatus(
   file: UploadFile,
   status: UploadFileStatus,
-  onFileStatusChange?: (file: UploadFile) => void,
+  onFileStatusChange?: ((file: UploadFile) => void) | ((file: UploadFile) => void)[],
 ): void {
   file.status = status
   onFileStatusChange && callEmit(onFileStatusChange, file)

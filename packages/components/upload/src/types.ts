@@ -34,17 +34,18 @@ export interface UploadFile {
   raw: RawFile
   status?: UploadFileStatus
   error?: Error
+  errorTip?: string
   thumbUrl?: string
-  downloadUrl?: string
+  url?: string
   percent?: number
-  response?: Response // todo，单个文件的响应
+  response?: Response
 }
 export interface UploadRequestOption<T = any> {
   onProgress?: (event: UploadProgressEvent) => void
   onError?: (event: UploadRequestError | ProgressEvent, body?: T) => void
   onSuccess?: (body: T) => void
   filename: string
-  file: UploadFile
+  file: RawFile | File
   withCredentials?: boolean
   action: string
   requestHeaders?: UploadRequestHeader
@@ -73,11 +74,11 @@ export const uploadProps = {
   withCredentials: IxPropTypes.bool,
   requestData: IxPropTypes.oneOfType<DataType | ((file: UploadFile) => DataType | Promise<DataType>)>([{}, () => ({})]),
   requestHeaders: IxPropTypes.object<UploadRequestHeader>(),
-  requestMethod: IxPropTypes.string,
+  requestMethod: IxPropTypes.oneOf(['POST', 'PUT', 'PATCH', 'post', 'put', 'patch']),
   'onUpdate:files': IxPropTypes.emit<(fileList: UploadFile[]) => void>(),
   onSelect: IxPropTypes.emit<(file: UploadFile[]) => boolean | UploadFile[] | Promise<boolean | UploadFile[]>>(),
   onFileStatusChange: IxPropTypes.emit<(file: UploadFile) => void>(),
-  onBeforeUpload: IxPropTypes.emit<(file: UploadFile) => boolean | RawFile | Promise<boolean | RawFile>>(),
+  onBeforeUpload: IxPropTypes.emit<(file: RawFile) => boolean | RawFile | Promise<boolean | RawFile>>(),
   onRequestChange: IxPropTypes.emit<(option: UploadRequestChangeOption) => void>(),
 }
 export type UploadProps = IxInnerPropTypes<typeof uploadProps>
@@ -91,7 +92,6 @@ export const uploadListProps = {
   onDownload: IxPropTypes.emit<(file: UploadFile) => boolean | Promise<boolean>>(),
   onPreview: IxPropTypes.emit<(file: UploadFile) => boolean | Promise<boolean>>(),
   onRemove: IxPropTypes.emit<(file: UploadFile) => boolean | Promise<boolean>>(),
-  onRetry: IxPropTypes.emit<(file: UploadFile) => boolean | Promise<boolean>>(),
 }
 export type UploadListProps = IxInnerPropTypes<typeof uploadListProps>
 export type UploadListPublicProps = IxPublicPropTypes<typeof uploadListProps>

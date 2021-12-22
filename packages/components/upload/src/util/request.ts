@@ -12,10 +12,10 @@ type UploadReturnType = {
 }
 
 function getError(option: UploadRequestOption, xhr: XMLHttpRequest) {
-  const msg = `cannot ${option.method} ${option.action} ${xhr.status}'`
+  const msg = `cannot ${option.requestMethod} ${option.action} ${xhr.status}'`
   const err = new Error(msg) as UploadRequestError
   err.status = xhr.status
-  err.method = option.method
+  err.method = option.requestMethod
   err.url = option.action
   return err
 }
@@ -47,9 +47,9 @@ export default function upload(option: UploadRequestOption): UploadReturnType {
 
   const formData = new FormData()
 
-  if (option.data) {
-    Object.keys(option.data).forEach(key => {
-      const value = option.data![key]
+  if (option.requestData) {
+    Object.keys(option.requestData).forEach(key => {
+      const value = option.requestData![key]
       // support key-value array data
       if (Array.isArray(value)) {
         value.forEach(item => {
@@ -64,11 +64,7 @@ export default function upload(option: UploadRequestOption): UploadReturnType {
     })
   }
 
-  if (option.file instanceof Blob) {
-    formData.append(option.filename, option.file, option.file.name)
-  } else {
-    formData.append(option.filename, option.file)
-  }
+  formData.append(option.filename, option.file, option.file.name)
 
   xhr.onerror = function error(e) {
     option.onError?.(e)
@@ -80,16 +76,16 @@ export default function upload(option: UploadRequestOption): UploadReturnType {
       return option.onError?.(getError(option, xhr), getBody(xhr))
     }
 
-    return option.onSuccess?.(getBody(xhr), xhr)
+    return option.onSuccess?.(getBody(xhr))
   }
 
-  xhr.open(option.method, option.action, true)
+  xhr.open(option.requestMethod, option.action, true)
 
   if (option.withCredentials && 'withCredentials' in xhr) {
     xhr.withCredentials = true
   }
 
-  const headers = option.headers || {}
+  const headers = option.requestHeaders || {}
 
   if (headers['X-Requested-With'] !== null) {
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest')

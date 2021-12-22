@@ -48,5 +48,10 @@ export default defineConfig(({ command }) => {
       outDir: resolve(__dirname, '../../dist/site'),
       emptyOutDir: true,
     },
+    server: {
+      proxy: {
+        '/upload': 'http://localhost:3001',
+      },
+    },
   }
 })

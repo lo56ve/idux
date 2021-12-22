@@ -84,7 +84,10 @@ async function onSelect(
   } else {
     callEmit(onUpdateFiles, props.files.concat(readyUploadFiles))
   }
-  startUpload(readyUploadFiles)
+
+  readyUploadFiles.forEach(file => {
+    startUpload(file)
+  })
 }
 
 function handleCountCheck(props: UploadProps, fileSelected: File[], files: UploadFile[]) {

@@ -5,13 +5,16 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { RawFile, UploadFile, UploadProgressEvent, UploadProps } from '../types'
+import type { UploadFile, UploadProgressEvent, UploadProps, UploadRequestOption } from '../types'
 import type { VKey } from '@idux/cdk/utils'
 import type { Ref } from 'vue'
 
 import { ref } from 'vue'
 
-import { callEmit } from '@idux/cdk/utils'
+import { isFunction, isUndefined } from 'lodash-es'
+
+import { callEmit, throwError } from '@idux/cdk/utils'
+import { useGlobalConfig } from '@idux/components/config'
 
 import { getTargetFile, getTargetFileIndex, setFileStatus } from '../util/file'
 import defaultUpload from '../util/request'
@@ -26,6 +29,7 @@ export interface UploadRequest {
 export function useRequest(props: UploadProps): UploadRequest {
   const fileUploading: Ref<UploadFile[]> = ref([])
   const aborts = new Map<VKey, () => void>([])
+  const config = useGlobalConfig('upload')
 
   function abort(file: UploadFile): void {
     const curFile = getTargetFile(file, props.files)
@@ -35,22 +39,21 @@ export function useRequest(props: UploadProps): UploadRequest {
     const curAbort = aborts.get(curFile.uid)
     curAbort?.()
     setFileStatus(curFile, 'abort', props.onFileStatusChange)
-    fileUploading.value.splice()
+    fileUploading.value.splice(getTargetFileIndex(curFile, fileUploading.value), 1)
+    aborts.delete(curFile.uid)
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
         status: 'abort',
         file: curFile,
       })
-    aborts.delete(curFile.uid)
-    fileUploading.value.splice(getTargetFileIndex(curFile, fileUploading.value))
   }
 
   function startUpload(file: UploadFile): void {
-    if (!props.onBeforeUpload) {
-      fileUploading.value.push(file)
+    if (isUndefined(props.onBeforeUpload)) {
+      upload(file)
       return
     }
-    const before = props.onBeforeUpload(file.raw)
+    const before = callEmit(props.onBeforeUpload, file.raw)
     if (before instanceof Promise) {
       before
         .then(result => {
@@ -59,42 +62,46 @@ export function useRequest(props: UploadProps): UploadRequest {
             return
           }
           if (result instanceof File) {
-            upload(result)
+            upload({ ...file, raw: result })
           }
         })
         .catch(() => {
-          file.status = 'error'
+          setFileStatus(file, 'error', props.onFileStatusChange)
         })
     } else if (before === true) {
       upload(file)
     }
   }
 
-  function upload(file: UploadFile): void {
+  async function upload(file: UploadFile) {
+    const action = await getAction(props, file)
+    const requestData = await getRequestData(props, file)
     const requestOption = {
-      file,
-      filename: file.name,
-      withCredentials: props.withCredentials,
-      action: props.action,
-      requestHeaders: props.requestHeaders,
-      requestMethod: props.requestMethod,
-      requestData: props.requestData,
+      file: file.raw,
+      filename: props.name ?? config.name,
+      withCredentials: props.withCredentials ?? config.withCredentials,
+      action: action,
+      requestHeaders: props.requestHeaders ?? {},
+      requestMethod: props.requestMethod ?? config.requestMethod,
+      requestData: requestData,
       onProgress: (e: UploadProgressEvent) => _onProgress(e, file),
       onError: (error: Error) => _onError(error, file),
       onSuccess: (res: any) => _onSuccess(res, file),
-    }
-
+    } as UploadRequestOption
     const uploadHttpRequest = props.customRequest ?? defaultUpload
+
+    file.percent = 0
     aborts.set(file.uid, uploadHttpRequest(requestOption)?.abort ?? (() => {}))
+    setFileStatus(file, 'uploading', props.onFileStatusChange)
     fileUploading.value.push(file)
   }
 
-  function _onProgress(e: UploadProgressEvent, file: RawFile): void {
+  function _onProgress(e: UploadProgressEvent, file: UploadFile): void {
     const curFile = getTargetFile(file, props.files)
     if (!curFile) {
       return
     }
-    curFile?.percent = e.percent ?? 0
+    curFile.percent = e.percent ?? 0
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
         status: 'progress',
@@ -103,12 +110,12 @@ export function useRequest(props: UploadProps): UploadRequest {
       })
   }
 
-  function _onError(error: Error, file: RawFile): void {
+  function _onError(error: Error, file: UploadFile): void {
     const curFile = getTargetFile(file, props.files)
     if (!curFile) {
       return
     }
-    fileUploading.value.splice(getTargetFileIndex(curFile, fileUploading.value))
+    fileUploading.value.splice(getTargetFileIndex(curFile, fileUploading.value), 1)
     setFileStatus(curFile, 'error', props.onFileStatusChange)
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
@@ -117,18 +124,18 @@ export function useRequest(props: UploadProps): UploadRequest {
       })
   }
 
-  function _onSuccess(res: any, file: RawFile): void {
+  function _onSuccess(res: any, file: UploadFile): void {
     const curFile = getTargetFile(file, props.files)
     if (!curFile) {
       return
     }
-    curFile?.response = res
+    curFile.response = res
+    fileUploading.value.splice(getTargetFileIndex(curFile, fileUploading.value), 1)
     setFileStatus(curFile, 'success', props.onFileStatusChange)
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
         status: 'loadend',
         file: curFile,
-        e,
       })
   }
 
@@ -138,4 +145,17 @@ export function useRequest(props: UploadProps): UploadRequest {
     startUpload,
     upload,
   }
+}
+
+async function getAction(props: UploadProps, file: UploadFile) {
+  if (!props.action) {
+    throwError('components/upload', 'action not found.')
+  }
+  const action = isFunction(props.action) ? await props.action(file) : props.action
+  return action
+}
+
+async function getRequestData(props: UploadProps, file: UploadFile) {
+  const requestData = isFunction(props.requestData) ? await props.requestData(file) : props.requestData ?? {}
+  return requestData
 }
