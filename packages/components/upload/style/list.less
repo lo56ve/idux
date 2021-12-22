@@ -11,6 +11,12 @@
 .@{upload-prefix}-list {
   margin: @upload-list-margin;
 
+  .@{upload-prefix}-icon {
+    &-error {
+      color: @color-error;
+    }
+  }
+
   &-text, &-image {
     border: @upload-list-text-border;
 
@@ -20,6 +26,22 @@
       align-items: center;
       padding: 8px;
       border-bottom: @upload-file-border-bottom;
+
+      .@{upload-prefix}-name {
+        text-decoration-line: none;
+      }
+
+      &-error {
+        .@{upload-prefix}-name {
+          color: @color-error;
+        }
+      }
+
+      &-success {
+        .@{upload-prefix}-name {
+          color: @color-blue-base;
+        }
+      }
 
       &:last-child {
         border: 0;
@@ -41,6 +63,8 @@
   }
 
   &-text {
+    border-radius: @upload-list-border-radius;
+
     .@{upload-prefix}-file {
       position: relative;
 
@@ -48,12 +72,6 @@
         position: absolute;
         bottom: -1px;
         left: 0;
-      }
-
-      &-error {
-        .@{upload-prefix}-name, .@{upload-prefix}-icon-error {
-          color: @color-error-base;
-        }
       }
     }
 

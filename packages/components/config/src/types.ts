@@ -190,6 +190,9 @@ export interface Upload {
   parallel: boolean
   withCredentials: boolean
   requestMethod: UploadRequestMethod
+}
+
+export interface UploadList {
   listType: UploadListType
 }
 
@@ -423,6 +426,7 @@ export interface GlobalConfig {
   timePicker: TimePickerConfig
   timeRangePicker: TimeRangePickerConfig
   upload: Upload
+  uploadList: UploadList
   // Data Display
   avatar: AvatarConfig
   badge: BadgeConfig

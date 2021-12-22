@@ -54,6 +54,7 @@ import type {
   TooltipConfig,
   TreeConfig,
   Upload,
+  UploadList,
 } from './types'
 
 import { numFormatter } from './numFormatter'
@@ -200,6 +201,9 @@ const upload: Upload = {
   parallel: true,
   withCredentials: false,
   requestMethod: 'post',
+}
+
+const uploadList: UploadList = {
   listType: 'text',
 }
 
@@ -399,6 +403,7 @@ export const defaultConfig: GlobalConfig = {
   timePicker,
   timeRangePicker,
   upload,
+  uploadList,
   // Data Display
   avatar,
   badge,

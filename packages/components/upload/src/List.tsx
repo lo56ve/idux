@@ -6,7 +6,7 @@
  */
 
 import type { UploadListProps, UploadListType } from './types'
-import type { Upload } from '@idux/components/config'
+import type { UploadList } from '@idux/components/config'
 import type { ComputedRef } from 'vue'
 
 import { computed, defineComponent, h } from 'vue'
@@ -28,13 +28,13 @@ export default defineComponent({
   name: 'IxUploadList',
   props: uploadListProps,
   setup(props) {
-    const config = useGlobalConfig('upload')
+    const config = useGlobalConfig('uploadList')
     const listType = useListType(props, config)
 
-    return () => h(cpmMap[listType.value], { ...{ attrs: uploadListProps } })
+    return () => h(cpmMap[listType.value], { ...props })
   },
 })
 
-function useListType(props: UploadListProps, config: Upload): ComputedRef<UploadListType> {
+function useListType(props: UploadListProps, config: UploadList): ComputedRef<UploadListType> {
   return computed(() => props.type ?? config.listType)
 }
