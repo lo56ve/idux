@@ -5,17 +5,18 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { UploadListProps, UploadListType } from './types'
+import type { UploadListProps } from './types'
 import type { UploadList } from '@idux/components/config'
-import type { ComputedRef } from 'vue'
 
-import { computed, defineComponent, h } from 'vue'
+import { computed, defineComponent, h, inject, watchEffect } from 'vue'
 
 import { useGlobalConfig } from '@idux/components/config'
 
 import IxUploadImageCardList from './component/ImageCardList'
 import IxUploadImageList from './component/ImageList'
 import IxUploadTextList from './component/TextList'
+import { useSelectorVisible } from './composables/useVisible'
+import { UploadToken, uploadToken } from './token'
 import { uploadListProps } from './types'
 
 const cpmMap = {
@@ -30,11 +31,18 @@ export default defineComponent({
   setup(props) {
     const config = useGlobalConfig('uploadList')
     const listType = useListType(props, config)
+    const { props: uploadProps, setSelectorVisible } = inject(uploadToken, {
+      props: {},
+      setSelectorVisible: () => {},
+    } as unknown as UploadToken)
+    const [outerSelector] = useSelectorVisible(uploadProps, listType)
+
+    watchEffect(() => setSelectorVisible(outerSelector.value))
 
     return () => h(cpmMap[listType.value], { ...props })
   },
 })
 
-function useListType(props: UploadListProps, config: UploadList): ComputedRef<UploadListType> {
+function useListType(props: UploadListProps, config: UploadList) {
   return computed(() => props.type ?? config.listType)
 }

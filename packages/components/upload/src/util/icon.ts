@@ -5,8 +5,10 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { UploadIconType } from '../types'
-import type { VNode } from 'vue'
+import type { FileOperation } from '../composables/useOperation'
+import type { UploadFile, UploadIconType } from '../types'
+import type { Locale } from '@idux/components/i18n'
+import type { ComputedRef, VNode } from 'vue'
 
 import { h } from 'vue'
 
@@ -16,15 +18,18 @@ import { IxIcon } from '@idux/components/icon'
 
 const iconMap = {
   file: 'paper-clip',
-  preview: 'eye',
+  preview: 'zoom-in',
   download: 'download',
-  remove: 'close',
-  retry: 'reload',
+  remove: 'delete',
+  retry: 'edit',
 } as const
 
 type IconNodeType = string | boolean | VNode
+type Opr = 'previewNode' | 'retryNode' | 'downloadNode' | 'removeNode'
 
 export type IconsMap = Partial<Record<UploadIconType, Exclude<IconNodeType, true>>>
+
+export type OprIcons = Record<Opr, VNode | null>
 
 export function getIconNode(icon: Exclude<IconNodeType, true>): VNode | null {
   if (icon === false) {
@@ -55,4 +60,40 @@ export function renderIcon(icon: IconsMap[keyof IconsMap] | undefined, props?: R
     return null
   }
   return h('span', props, [getIconNode(icon)])
+}
+
+export function renderOprIcon(
+  file: UploadFile,
+  icons: ComputedRef<IconsMap>,
+  cpmClasses: ComputedRef<string>,
+  fileOperation: FileOperation,
+  locale: ComputedRef<Locale['upload']>,
+): OprIcons {
+  const previewNode = renderIcon(icons.value.preview, {
+    class: `${cpmClasses.value}-icon-opr ${cpmClasses.value}-icon-preview`,
+    onClick: () => fileOperation.preview(file),
+    title: locale.value.preview,
+  })
+  const retryNode = renderIcon(icons.value.retry, {
+    class: `${cpmClasses.value}-icon-opr ${cpmClasses.value}-icon-retry`,
+    onClick: () => fileOperation.retry(file),
+    title: locale.value.retry,
+  })
+  const downloadNode = renderIcon(icons.value.download, {
+    class: `${cpmClasses.value}-icon-opr ${cpmClasses.value}-icon-download`,
+    onClick: () => fileOperation.download(file),
+    title: locale.value.download,
+  })
+  const removeNode = renderIcon(icons.value.remove, {
+    class: `${cpmClasses.value}-icon-opr ${cpmClasses.value}-icon-remove`,
+    onClick: () => fileOperation.remove(file),
+    title: locale.value.remove,
+  })
+
+  return {
+    previewNode,
+    retryNode,
+    downloadNode,
+    removeNode,
+  }
 }

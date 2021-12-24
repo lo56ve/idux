@@ -18,17 +18,28 @@
   }
 
   &-text, &-image {
-    border: @upload-list-text-border;
-
     .@{upload-prefix}-file {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 8px;
-      border-bottom: @upload-file-border-bottom;
+      position: relative;
+
+      .@{upload-prefix}-progress {
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+      }
 
       .@{upload-prefix}-name {
-        text-decoration-line: none;
+
+        &-pointer {
+          cursor: pointer;
+        }
+      }
+
+      &:hover {
+        background-color: @color-graphite-l50;
       }
 
       &-error {
@@ -43,35 +54,35 @@
         }
       }
 
-      &:last-child {
-        border: 0;
-      }
+      .@{upload-prefix}-icon-opr {
+        cursor: pointer;
+        margin: @upload-icon-margin;
+        color: @color-graphite-base;
 
-      .@{upload-prefix}-icon {
-
-        &-remove, &-retry, &-download, &-preview {
-          cursor: pointer;
-          margin: @upload-icon-margin;
-          color: @color-graphite-base;
-
-          &:hover {
-            color: @color-graphite-d10;
-          }
+        &:hover {
+          color: @color-graphite-d10;
         }
+      }
+    }
+
+    &.@{upload-prefix}-list-disabled {
+
+      .@{upload-prefix}-name, .@{upload-prefix}-icon-opr {
+        .upload-disabled-color();
+        .upload-disabled-cursor();
       }
     }
   }
 
   &-text {
-    border-radius: @upload-list-border-radius;
+    border: @upload-list-text-border;
+    border-radius: @upload-border-radius;
 
     .@{upload-prefix}-file {
-      position: relative;
+      border-bottom: @upload-file-border-bottom;
 
-      .@{upload-prefix}-progress {
-        position: absolute;
-        bottom: -1px;
-        left: 0;
+      &:last-child {
+        border: 0;
       }
     }
 
@@ -81,6 +92,16 @@
   }
 
   &-image {
+    .@{upload-prefix}-file {
+      border: @upload-file-border-bottom;
+      border-radius: @upload-border-radius;
+      margin: @upload-list-image-margin;
+
+      &:first-child {
+        margin: 0;
+      }
+    }
+
     .@{upload-prefix}-thumb-info {
       display: inline-flex;
       align-items: center;
@@ -117,8 +138,43 @@
 
     .@{upload-prefix}-file {
       .list-card();
+      border-radius: @upload-border-radius;
+      border: 1px solid @color-graphite-l30;
+      background-color: @color-graphite-l50;
+
+      .@{upload-prefix}-status {
+        color: @color-graphite-base;
+        min-width: @upload-list-image-card-status-min-width;
+
+        .@{idux-prefix}-progress {
+          display: flex;
+          margin-top: @upload-list-image-card-status-progress-margin;
+        }
+      }
+
+      &-error {
+        .@{upload-prefix}-status {
+          color: @color-error;
+        }
+      }
+
+      .@{upload-prefix}-icon {
+        .base-transition();
+        display: flex;
+        justify-content: space-evenly;
+        width: @upload-list-image-card-icon-wrap-width;
+        position: absolute;
+        z-index: @zindex-l1-2;
+        opacity: 0;
+        color: @color-white;
+
+        &-opr {
+          cursor: pointer;
+        }
+      }
 
       &::after {
+        .base-transition();
         content: '';
         display: inline-block;
         height: 100%;
@@ -129,19 +185,7 @@
         left: 0;
         top: 0;
         opacity: 0;
-        transition: all .3s;
-      }
-
-      .@{upload-prefix}-icon {
-        display: flex;
-        justify-content: space-evenly;
-        width: @upload-list-image-card-icon-wrap-width;
-        position: absolute;
-        z-index: @zindex-l1-2;
-        opacity: 0;
-        color: @color-white;
-        transition: all .3s;
-        cursor: pointer;
+        border-radius: @upload-border-radius;
       }
 
       &:hover {
@@ -154,6 +198,20 @@
           opacity: 1;
         }
       }
+    }
+
+    &.@{upload-prefix}-list-disabled {
+
+      .@{upload-prefix}-selector {
+        .upload-disabled-color();
+        .upload-disabled-bg-color();
+        .upload-disabled-cursor();
+      }
+
+      .@{upload-prefix}-icon-opr {
+        .upload-disabled-cursor();
+      }
+
     }
   }
 }

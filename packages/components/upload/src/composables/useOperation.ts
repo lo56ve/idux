@@ -6,7 +6,7 @@
  */
 
 import type { UploadToken } from '../token'
-import type { UploadFile, UploadListProps } from '../types'
+import type { UploadFile, UploadListProps, UploadProps } from '../types'
 import type { ComputedRef } from 'vue'
 
 import { callEmit } from '@idux/cdk/utils'
@@ -24,6 +24,7 @@ export interface FileOperation {
 export function useOperation(
   files: ComputedRef<UploadFile[]>,
   listProps: UploadListProps,
+  uploadProps: UploadProps,
   opr: Pick<UploadToken, 'abort' | 'upload' | 'onUpdateFiles'>,
 ): FileOperation {
   const abort = (file: UploadFile) => {
@@ -31,18 +32,30 @@ export function useOperation(
   }
 
   const retry = (file: UploadFile) => {
+    if (uploadProps.disabled) {
+      return
+    }
     opr.upload(file)
   }
 
   const download = (file: UploadFile) => {
+    if (uploadProps.disabled) {
+      return
+    }
     callEmit(listProps.onDownload, file)
   }
 
   const preview = (file: UploadFile) => {
+    if (uploadProps.disabled) {
+      return
+    }
     callEmit(listProps.onPreview, file)
   }
 
   const remove = (file: UploadFile) => {
+    if (uploadProps.disabled) {
+      return
+    }
     const curFile = getTargetFile(file, files.value)
     if (!curFile) {
       return

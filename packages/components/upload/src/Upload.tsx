@@ -5,7 +5,9 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import { defineComponent, provide } from 'vue'
+import type { Ref } from 'vue'
+
+import { defineComponent, provide, ref } from 'vue'
 
 import { useControlledProp } from '@idux/cdk/utils'
 
@@ -20,6 +22,7 @@ export default defineComponent({
   props: uploadProps,
   setup(props, { slots }) {
     const cpmClasses = useCmpClasses()
+    const [showSelector, setSelectorVisible] = useShowSelector()
     const [, onUpdateFiles] = useControlledProp(props, 'files', [])
     const { fileUploading, abort, startUpload, upload } = useRequest(props)
     provide(uploadToken, {
@@ -29,14 +32,25 @@ export default defineComponent({
       abort,
       startUpload,
       upload,
+      setSelectorVisible,
     })
 
     return () => (
       <div>
-        <FileSelector>{slots.default?.()}</FileSelector>
+        {showSelector.value && <FileSelector>{slots.default?.()}</FileSelector>}
         {slots.list?.()}
         <div class={`${cpmClasses.value}-tip`}>{slots.tip?.()}</div>
       </div>
     )
   },
 })
+
+function useShowSelector(): [Ref<boolean>, (isShow: boolean) => void] {
+  const showSelector = ref(true)
+
+  function setSelectorVisible(isShow: boolean) {
+    showSelector.value = isShow
+  }
+
+  return [showSelector, setSelectorVisible]
+}

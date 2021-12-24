@@ -48,28 +48,41 @@ export function useRequest(props: UploadProps): UploadRequest {
       })
   }
 
-  function startUpload(file: UploadFile): void {
+  async function startUpload(file: UploadFile): Promise<void> {
     if (isUndefined(props.onBeforeUpload)) {
-      upload(file)
+      await upload(file)
       return
     }
     const before = callEmit(props.onBeforeUpload, file.raw)
     if (before instanceof Promise) {
-      before
-        .then(result => {
-          if (result === true) {
-            upload(file)
-            return
-          }
-          if (result instanceof File) {
-            upload({ ...file, raw: result })
-          }
-        })
-        .catch(() => {
-          setFileStatus(file, 'error', props.onFileStatusChange)
-        })
+      try {
+        const result = await before
+        if (result === true) {
+          await upload(file)
+          return
+        }
+        if (result instanceof File) {
+          await upload({ ...file, raw: result })
+        }
+      } catch (e) {
+        setFileStatus(file, 'error', props.onFileStatusChange)
+      }
+
+      // before
+      //   .then(result => {
+      //     if (result === true) {
+      //       upload(file)
+      //       return
+      //     }
+      //     if (result instanceof File) {
+      //       upload({ ...file, raw: result })
+      //     }
+      //   })
+      //   .catch(() => {
+      //     setFileStatus(file, 'error', props.onFileStatusChange)
+      //   })
     } else if (before === true) {
-      upload(file)
+      await upload(file)
     }
   }
 
@@ -90,9 +103,9 @@ export function useRequest(props: UploadProps): UploadRequest {
     } as UploadRequestOption
     const uploadHttpRequest = props.customRequest ?? defaultUpload
 
+    setFileStatus(file, 'uploading', props.onFileStatusChange)
     file.percent = 0
     aborts.set(file.uid, uploadHttpRequest(requestOption)?.abort ?? (() => {}))
-    setFileStatus(file, 'uploading', props.onFileStatusChange)
     fileUploading.value.push(file)
   }
 
@@ -124,14 +137,14 @@ export function useRequest(props: UploadProps): UploadRequest {
       })
   }
 
-  function _onSuccess(res: any, file: UploadFile): void {
+  function _onSuccess(res: Response, file: UploadFile): void {
     const curFile = getTargetFile(file, props.files)
     if (!curFile) {
       return
     }
     curFile.response = res
-    fileUploading.value.splice(getTargetFileIndex(curFile, fileUploading.value), 1)
     setFileStatus(curFile, 'success', props.onFileStatusChange)
+    fileUploading.value.splice(getTargetFileIndex(curFile, fileUploading.value), 1)
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
         status: 'loadend',

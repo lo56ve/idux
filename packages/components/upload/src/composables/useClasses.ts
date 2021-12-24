@@ -5,7 +5,7 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { UploadListType } from '../types'
+import type { UploadListType, UploadProps } from '../types'
 import type { ComputedRef } from 'vue'
 
 import { computed, normalizeClass } from 'vue'
@@ -17,7 +17,13 @@ export function useCmpClasses(): ComputedRef<string> {
   return computed(() => `${commonPrefix.prefixCls}-upload`)
 }
 
-export function useListClasses(type: UploadListType): ComputedRef<string> {
+export function useListClasses(props: UploadProps, type: UploadListType): ComputedRef<string> {
   const cpmClasses = useCmpClasses()
-  return computed(() => normalizeClass([`${cpmClasses.value}-list`, `${cpmClasses.value}-list-${type}`]))
+  return computed(() =>
+    normalizeClass([
+      `${cpmClasses.value}-list`,
+      `${cpmClasses.value}-list-${type}`,
+      { [`${cpmClasses.value}-list-disabled`]: props.disabled },
+    ]),
+  )
 }

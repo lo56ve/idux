@@ -12,6 +12,7 @@ import type { InjectionKey } from 'vue'
 export type UploadToken = {
   props: UploadProps
   onUpdateFiles: (file: UploadFile[]) => void
+  setSelectorVisible: (isShow: boolean) => void
 } & UploadRequest
 
 export const uploadToken: InjectionKey<UploadToken> = Symbol('UploadToken')

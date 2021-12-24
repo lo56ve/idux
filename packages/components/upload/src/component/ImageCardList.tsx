@@ -5,57 +5,118 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { UploadFile } from '../types'
+import type { FileOperation } from '../composables/useOperation'
+import type { UploadToken } from '../token'
+import type { UploadFile, UploadFileStatus, UploadProps } from '../types'
 import type { IconsMap } from '../util/icon'
+import type { Locale } from '@idux/components/i18n'
 import type { ComputedRef } from 'vue'
 
-import { defineComponent, inject } from 'vue'
+import { computed, defineComponent, inject, normalizeClass } from 'vue'
 
+import { getLocale } from '@idux/components/i18n'
 import { IxIcon } from '@idux/components/icon'
+import { IxProgress } from '@idux/components/progress'
+import { IxTooltip } from '@idux/components/tooltip'
 
 import { useCmpClasses, useListClasses } from '../composables/useClasses'
 import { useIcon } from '../composables/useIcon'
-import { UploadToken, uploadToken } from '../token'
+import { useOperation } from '../composables/useOperation'
+import { useSelectorVisible } from '../composables/useVisible'
+import { uploadToken } from '../token'
 import { uploadListProps } from '../types'
 import { getThumbNode } from '../util/file'
-import { getIconNode } from '../util/icon'
+import { renderOprIcon } from '../util/icon'
+import { showDownload, showErrorTip, showPreview, showProgress, showRetry } from '../util/visible'
 import FileSelector from './Selector'
 
 export default defineComponent({
   name: 'IxUploadImageCardList',
   props: uploadListProps,
-  setup() {
-    const { props: uploadProps } = inject(uploadToken, { props: { files: [] } } as unknown as UploadToken)
-    const icons = useIcon(uploadProps)
+  setup(listProps) {
+    const {
+      props: uploadProps,
+      upload,
+      abort,
+      onUpdateFiles,
+    } = inject(uploadToken, {
+      props: { files: [] },
+      upload: () => {},
+      abort: () => {},
+      onUpdateFiles: () => {},
+    } as unknown as UploadToken)
+    const icons = useIcon(listProps)
     const cpmClasses = useCmpClasses()
-    const listClasses = useListClasses('imageCard')
+    const listClasses = useListClasses(uploadProps, 'imageCard')
+    const files = computed(() => uploadProps.files)
+    const locale = getLocale('upload')
+    const [, imageCardVisible] = useSelectorVisible(uploadProps, 'imageCard')
+    const showSelector = useShowSelector(uploadProps, files, imageCardVisible)
+    const fileOperation = useOperation(files, listProps, uploadProps, { abort, upload, onUpdateFiles })
+    const selectorNode = renderSelector(cpmClasses)
 
     return () => (
       <ul class={listClasses.value}>
-        {renderSelector(cpmClasses)}
-        {uploadProps.files.map(file => renderItem(file, icons, cpmClasses))}
+        {showSelector.value && selectorNode}
+        {files.value.map(file => renderItem(file, icons, cpmClasses, fileOperation, locale))}
       </ul>
     )
   },
 })
 
-function renderItem(file: UploadFile, icons: ComputedRef<IconsMap>, cpmClasses: ComputedRef<string>) {
+function renderItem(
+  file: UploadFile,
+  icons: ComputedRef<IconsMap>,
+  cpmClasses: ComputedRef<string>,
+  fileOperation: FileOperation,
+  locale: ComputedRef<Locale['upload']>,
+) {
+  const fileClasses = normalizeClass([`${cpmClasses.value}-file`, `${cpmClasses.value}-file-${file.status}`])
+  const uploadStatusNode = renderUploadStatus(file, locale, cpmClasses)
+  const thumbNode = getThumbNode(file)
+  const { retryNode, downloadNode, removeNode, previewNode } = renderOprIcon(
+    file,
+    icons,
+    cpmClasses,
+    fileOperation,
+    locale,
+  )
   return (
-    <li class={`${cpmClasses.value}-file`}>
-      {getThumbNode(file)}
-      <div class={`${cpmClasses.value}-icon`}>
-        <span class={`${cpmClasses.value}-icon-preview`}>{getIconNode(icons.value.preview)}</span>
-        <span class={`${cpmClasses.value}-icon-retry`}>{getIconNode(icons.value.retry)}</span>
-        <span class={`${cpmClasses.value}-icon-download`}>{getIconNode(icons.value.download)}</span>
-        <span class={`${cpmClasses.value}-icon-remove`}>{getIconNode(icons.value.remove)}</span>
-      </div>
-    </li>
+    <IxTooltip title={showErrorTip(file.status, file.errorTip) ? file.errorTip : ''}>
+      <li class={fileClasses}>
+        {showUploadStatus(file.status) ? uploadStatusNode : thumbNode}
+        <div class={`${cpmClasses.value}-icon`}>
+          {showPreview(file.status) && previewNode}
+          {showRetry(file.status) && retryNode}
+          {showDownload(file.status) && downloadNode}
+          {removeNode}
+        </div>
+      </li>
+    </IxTooltip>
   )
 }
 
-// function renderUploadingNode() {
-//   return <div></div>
-// }
+function renderUploadStatus(file: UploadFile, locale: ComputedRef<Locale['upload']>, cpmClasses: ComputedRef<string>) {
+  const statusTitle = {
+    error: locale.value.error,
+    uploading: locale.value.uploading,
+  } as Record<UploadFileStatus, string>
+  const curTitle = file.status && statusTitle[file.status!]
+  return (
+    <div class={`${cpmClasses.value}-status`}>
+      {curTitle && <div class={`${cpmClasses.value}-status-title`}>{curTitle}</div>}
+      {showProgress(file.status, file.percent) && (
+        <IxProgress
+          class={`${cpmClasses.value}-progress`}
+          strokeColor="#20CC94"
+          percent={file.percent}
+          strokeWidth={3}
+          hide-info
+        ></IxProgress>
+      )}
+    </div>
+  )
+}
 
 function renderSelector(cpmClasses: ComputedRef<string>) {
   return (
@@ -63,4 +124,19 @@ function renderSelector(cpmClasses: ComputedRef<string>) {
       <IxIcon name="plus"></IxIcon>
     </FileSelector>
   )
+}
+
+function showUploadStatus(status?: UploadFileStatus) {
+  return status && ['uploading', 'error'].includes(status)
+}
+
+function useShowSelector(
+  uploadProps: UploadProps,
+  files: ComputedRef<UploadFile[]>,
+  imageCardVisible: ComputedRef<boolean>,
+) {
+  return computed(() => {
+    const countLimit = !uploadProps.maxCount || files.value.length < uploadProps.maxCount
+    return countLimit && imageCardVisible.value
+  })
 }

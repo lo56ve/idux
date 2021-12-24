@@ -99,8 +99,7 @@ export interface UploadLocale {
   error: string
   cancel: string
   preview: string
-  removeImage: string
-  removeFile: string
+  remove: string
   retry: string
   download: string
 }

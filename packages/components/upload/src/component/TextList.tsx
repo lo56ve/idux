@@ -7,12 +7,14 @@
 
 import type { FileOperation } from '../composables/useOperation'
 import type { UploadToken } from '../token'
-import type { UploadFile, UploadListProps } from '../types'
+import type { UploadFile } from '../types'
 import type { IconsMap } from '../util/icon'
+import type { Locale } from '@idux/components/i18n'
 import type { ComputedRef } from 'vue'
 
 import { computed, defineComponent, inject, normalizeClass } from 'vue'
 
+import { getLocale } from '@idux/components/i18n'
 import { IxProgress } from '@idux/components/progress'
 import { IxTooltip } from '@idux/components/tooltip'
 
@@ -21,8 +23,8 @@ import { useIcon } from '../composables/useIcon'
 import { useOperation } from '../composables/useOperation'
 import { uploadToken } from '../token'
 import { uploadListProps } from '../types'
-import { renderIcon } from '../util/icon'
-import { showDownload, showErrorTip, showProgress, showRetry } from '../util/visible'
+import { renderIcon, renderOprIcon } from '../util/icon'
+import { showDownload, showErrorTip, showPreview, showProgress, showRetry } from '../util/visible'
 
 export default defineComponent({
   name: 'IxUploadTextList',
@@ -41,53 +43,46 @@ export default defineComponent({
     } as unknown as UploadToken)
     const icons = useIcon(listProps)
     const cpmClasses = useCmpClasses()
-    const listClasses = useListClasses('text')
+    const listClasses = useListClasses(uploadProps, 'text')
     const files = computed(() => uploadProps.files)
-    const fileOperation = useOperation(files, listProps, { abort, upload, onUpdateFiles })
+    const locale = getLocale('upload')
+    const fileOperation = useOperation(files, listProps, uploadProps, { abort, upload, onUpdateFiles })
 
     return () =>
       files.value.length > 0 && (
         <ul class={listClasses.value}>
-          {files.value.map(file => renderItem(listProps, file, icons, cpmClasses, fileOperation))}
+          {files.value.map(file => renderItem(file, icons, cpmClasses, fileOperation, locale))}
         </ul>
       )
   },
 })
 
 function renderItem(
-  listProps: UploadListProps,
   file: UploadFile,
   icons: ComputedRef<IconsMap>,
   cpmClasses: ComputedRef<string>,
   fileOperation: FileOperation,
+  locale: ComputedRef<Locale['upload']>,
 ) {
   const fileClasses = normalizeClass([`${cpmClasses.value}-file`, `${cpmClasses.value}-file-${file.status}`])
+  const fileNameClasses = normalizeClass([`${cpmClasses.value}-name`, `${cpmClasses.value}-name-pointer`])
+  const errorTipNode = renderIcon('exclamation-circle', { class: `${cpmClasses.value}-icon-error` })
+  const { retryNode, downloadNode, removeNode } = renderOprIcon(file, icons, cpmClasses, fileOperation, locale)
   return (
     <li class={fileClasses}>
       <span>
         {renderIcon(icons.value.file, { class: `${cpmClasses.value}-icon-file` })}
-        {renderFileName(listProps, file, cpmClasses, fileOperation)}
+        <span class={fileNameClasses} onClick={() => showPreview(file.status) && fileOperation.preview(file)}>
+          {file.name}
+        </span>
       </span>
       <span>
-        <IxTooltip title={file.errorTip}>
-          {showErrorTip(file) && renderIcon('exclamation-circle', { class: `${cpmClasses.value}-icon-error` })}
-        </IxTooltip>
-        {showRetry(file) &&
-          renderIcon(icons.value.retry, {
-            class: `${cpmClasses.value}-icon-retry`,
-            onClick: () => fileOperation.retry(file),
-          })}
-        {showDownload(file) &&
-          renderIcon(icons.value.download, {
-            class: `${cpmClasses.value}-icon-download`,
-            onClick: () => fileOperation.download(file),
-          })}
-        {renderIcon(icons.value.remove, {
-          class: `${cpmClasses.value}-icon-remove`,
-          onClick: () => fileOperation.remove(file),
-        })}
+        <IxTooltip title={file.errorTip}>{showErrorTip(file.status, file.errorTip) && errorTipNode}</IxTooltip>
+        {showRetry(file.status) && retryNode}
+        {showDownload(file.status) && downloadNode}
+        {removeNode}
       </span>
-      {showProgress(file) && (
+      {showProgress(file.status, file.percent) && (
         <IxProgress
           class={`${cpmClasses.value}-progress`}
           percent={file.percent}
@@ -98,27 +93,4 @@ function renderItem(
       )}
     </li>
   )
-}
-
-function renderFileName(
-  listProps: UploadListProps,
-  file: UploadFile,
-  cpmClasses: ComputedRef<string>,
-  fileOperation: FileOperation,
-) {
-  if (file.status === 'success') {
-    if (listProps.onPreview) {
-      return (
-        <span class={`${cpmClasses.value}-name`} onClick={() => fileOperation.preview(file)}>
-          {file.name}
-        </span>
-      )
-    }
-    return (
-      <a class={`${cpmClasses.value}-name`} href={file.thumbUrl ?? file.url} target="_blank">
-        {file.name}
-      </a>
-    )
-  }
-  return <span class={`${cpmClasses.value}-name`}>{file.name}</span>
 }

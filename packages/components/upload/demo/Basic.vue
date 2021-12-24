@@ -1,8 +1,15 @@
 <template>
-  <IxUpload v-model:files="files" action="/upload" :onFileStatusChange="onFileStatusChange">
-    <IxButton>上传</IxButton>
+  <IxUpload v-model:files="files" accept=".png" action="/upload" :onFileStatusChange="onFileStatusChange">
+    <div style="height: 80px; width: 80px"> sdfsdfsdfsdf </div>
     <template #list>
-      <IxUploadList type="image" :icon="icon" :onDownload="onDownload" />
+      <IxUploadList
+        type="image"
+        :icon="icon"
+        :onDownload="onDownload"
+        :onPreview="onPreview"
+        :onRemove="onRemove"
+        :onSelect="onSelect"
+      />
     </template>
   </IxUpload>
 </template>
@@ -21,12 +28,26 @@ import { ref, watchEffect } from 'vue'
 const files = ref([])
 const icon = ref({ file: true, download: true, retry: true, remove: true, preview: true })
 const onDownload = file => {
-  console.log(file)
+  console.log('download', file)
 }
+
+const onPreview = file => {
+  console.log('preview', file)
+}
+
 const onFileStatusChange = file => {
-  // if (file.status === 'error') {
-  //   file.errorTip = '错了'
-  // }
+  if (file.status === 'error') {
+    file.errorTip = '错了'
+  }
+  console.log(file.status)
+}
+
+const onRemove = file => {
+  console.log('remove', file)
+}
+
+const onSelect = file => {
+  console.log('select', file)
 }
 
 watchEffect(() => {
