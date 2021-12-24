@@ -21,8 +21,8 @@ export interface UploadDrag {
 
 export function useDrag(props: UploadProps): UploadDrag {
   const dragOver = ref(false)
-  const filesSelected = shallowRef([])
-  const allowDrag = computed(() => props.dragable && !props.disabled)
+  const filesSelected: ShallowRef<File[]> = shallowRef([])
+  const allowDrag = computed(() => !!props.dragable && !props.disabled)
 
   function onDrop(e: DragEvent) {
     e.preventDefault()
@@ -30,7 +30,7 @@ export function useDrag(props: UploadProps): UploadDrag {
       return
     }
     dragOver.value = false
-    filesSelected.value = Array.prototype.slice.call(e.dataTransfer.files ?? []) as File[]
+    filesSelected.value = Array.prototype.slice.call(e.dataTransfer?.files ?? []) as File[]
   }
 
   function onDragOver(e: DragEvent) {

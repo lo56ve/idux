@@ -7,17 +7,17 @@
 
 import type { UploadDrag } from '../composables/useDrag'
 import type { UploadToken } from '../token'
-import type { UploadFile, UploadFileStatus, UploadProps } from '../types'
-import type { ComputedRef, Ref } from 'vue'
+import type { UploadFileStatus, UploadProps } from '../types'
+import type { ComputedRef, Ref, ShallowRef } from 'vue'
 
-import { computed, defineComponent, inject, normalizeClass, ref, watch } from 'vue'
+import { computed, defineComponent, inject, normalizeClass, ref, shallowRef, watch } from 'vue'
 
 import { callEmit } from '@idux/cdk/utils'
-import { getFileInfo } from '@idux/components/upload/src/util/file'
 
 import { useCmpClasses } from '../composables/useClasses'
 import { useDrag } from '../composables/useDrag'
 import { uploadToken } from '../token'
+import { getFileInfo, getFilesAcceptAllow, getFilesCountAllow } from '../util/file'
 
 export default defineComponent({
   name: 'IxUploadSelector',
@@ -31,10 +31,10 @@ export default defineComponent({
       onUpdateFiles: () => {},
       startUpload: () => {},
     } as unknown as UploadToken)
-    const dir = useDir(uploadProps)
     const cpmClasses = useCmpClasses()
-    const inputClasses = computed(() => `${cpmClasses.value}-input`)
-    const fileInputRef: Ref<HTMLInputElement | null> = ref(null)
+    const dir = useDir(uploadProps)
+    const accept = useAccept(uploadProps)
+    const maxCount = computed(() => uploadProps.maxCount ?? 0)
     const {
       allowDrag,
       dragOver,
@@ -43,9 +43,13 @@ export default defineComponent({
       onDragOver,
       onDragLeave,
     } = useDrag(uploadProps)
-    const selectorClasses = useSelectorClasses(allowDrag, cpmClasses, dragOver)
+    const [filesSelected, updateFilesSelected] = useFilesSelected(dragFilesSelected, allowDrag)
+    const filesReady = useFilesAllowed(uploadProps, filesSelected, accept, maxCount)
+    const fileInputRef: Ref<HTMLInputElement | null> = ref(null)
+    const inputClasses = computed(() => `${cpmClasses.value}-input`)
+    const selectorClasses = useSelectorClasses(uploadProps, allowDrag, cpmClasses, dragOver)
 
-    syncDragSelected(uploadProps, dragFilesSelected, onUpdateFiles, startUpload)
+    syncUploadHandle(uploadProps, filesReady, onUpdateFiles, startUpload)
 
     return () => {
       return (
@@ -64,7 +68,7 @@ export default defineComponent({
             accept={uploadProps.accept}
             multiple={uploadProps.multiple}
             onClick={e => e.stopPropagation()}
-            onChange={() => onSelect(fileInputRef, uploadProps, onUpdateFiles, startUpload)}
+            onChange={() => onSelect(fileInputRef, updateFilesSelected)}
           />
           {slots.default?.()}
         </div>
@@ -73,11 +77,17 @@ export default defineComponent({
   },
 })
 
-function useSelectorClasses(allowDrag: ComputedRef<boolean>, cpmClasses: ComputedRef<string>, dragOver: Ref<boolean>) {
+function useSelectorClasses(
+  props: UploadProps,
+  allowDrag: ComputedRef<boolean>,
+  cpmClasses: ComputedRef<string>,
+  dragOver: Ref<boolean>,
+) {
   return computed(() =>
     normalizeClass({
       [`${cpmClasses.value}-selector`]: true,
-      [`${cpmClasses.value}-selector-drag`]: allowDrag.value,
+      [`${cpmClasses.value}-selector-drag`]: props.dragable,
+      [`${cpmClasses.value}-selector-disabled`]: props.disabled,
       [`${cpmClasses.value}-selector-dragover`]: dragOver.value,
     }),
   )
@@ -96,6 +106,67 @@ function useAccept(props: UploadProps) {
   )
 }
 
+function useFilesSelected(
+  dragFilesSelected: UploadDrag['filesSelected'],
+  allowDrag: UploadDrag['allowDrag'],
+): [ShallowRef<File[]>, (files: File[]) => void] {
+  const filesSelected: ShallowRef<File[]> = shallowRef([])
+
+  watch(dragFilesSelected, files => {
+    if (allowDrag.value) {
+      filesSelected.value = files
+    }
+  })
+
+  function updateFilesSelected(files: File[]) {
+    filesSelected.value = files
+  }
+
+  return [filesSelected, updateFilesSelected]
+}
+
+function useFilesAllowed(
+  uploadProps: UploadProps,
+  filesSelected: ShallowRef<File[]>,
+  accept: ComputedRef<string[] | undefined>,
+  maxCount: ComputedRef<number>,
+) {
+  const filesAllowed: ShallowRef<File[]> = shallowRef([])
+
+  watch(filesSelected, files => {
+    const filesCheckAccept = getFilesAcceptAllow(files, accept.value)
+    filesAllowed.value = getFilesCountAllow(filesCheckAccept, uploadProps.files.length, maxCount.value)
+  })
+
+  return filesAllowed
+}
+
+// 选中文件变化就处理上传
+function syncUploadHandle(
+  uploadProps: UploadProps,
+  filesReady: ShallowRef<File[]>,
+  onUpdateFiles: UploadToken['onUpdateFiles'],
+  startUpload: UploadToken['startUpload'],
+) {
+  watch(filesReady, async files => {
+    if (files.length === 0) {
+      return
+    }
+    const filesAfterHandle = uploadProps.onSelect ? await callEmit(uploadProps.onSelect, files) : files
+    const filesReadyUpload = getFilesHandled(filesAfterHandle!, files)
+    const filesFormat = getFormatFiles(filesReadyUpload, uploadProps, 'selected')
+    if (uploadProps.maxCount === 1) {
+      callEmit(onUpdateFiles, filesFormat)
+    } else {
+      callEmit(onUpdateFiles, uploadProps.files.concat(filesFormat))
+    }
+
+    filesFormat.forEach(file => {
+      startUpload(file)
+    })
+  })
+}
+
 function onClick(fileInputRef: Ref<HTMLInputElement | null>, props: UploadProps) {
   if (props.disabled) {
     return
@@ -103,81 +174,9 @@ function onClick(fileInputRef: Ref<HTMLInputElement | null>, props: UploadProps)
   fileInputRef.value?.click()
 }
 
-function syncDragSelected(
-  props: UploadProps,
-  filesSelected: UploadDrag['filesSelected'],
-  onUpdateFiles: UploadToken['onUpdateFiles'],
-  startUpload: UploadToken['startUpload'],
-) {
-  watch(filesSelected, files => {
-    filesHandle(props, files, onUpdateFiles, startUpload)
-  })
-}
-
-function onSelect(
-  fileInputRef: Ref<HTMLInputElement | null>,
-  props: UploadProps,
-  onUpdateFiles: UploadToken['onUpdateFiles'],
-  startUpload: UploadToken['startUpload'],
-) {
+function onSelect(fileInputRef: Ref<HTMLInputElement | null>, updateFilesSelected: (files: File[]) => void) {
   const files = Array.prototype.slice.call(fileInputRef.value?.files ?? []) as File[]
-  if (files.length === 0) {
-    return
-  }
-  filesHandle(props, files, onUpdateFiles, startUpload)
-}
-
-async function filesHandle(
-  props: UploadProps,
-  files: File[],
-  onUpdateFiles: UploadToken['onUpdateFiles'],
-  startUpload: UploadToken['startUpload'],
-) {
-  const allowedFiles = checkFiles(props, files, props.files)
-  const handleResult = props.onSelect ? await callEmit(props.onSelect, allowedFiles) : allowedFiles
-  const readyUploadFiles = getHandledFiles(handleResult!, allowedFiles)
-  if (props.maxCount === 1) {
-    callEmit(onUpdateFiles, readyUploadFiles)
-  } else {
-    callEmit(onUpdateFiles, props.files.concat(readyUploadFiles))
-  }
-
-  readyUploadFiles.forEach(file => {
-    startUpload(file)
-  })
-}
-
-// 上传检查，检查文件的数量和格式
-function checkFiles(props: UploadProps, filesSelected: File[], files: UploadFile[]) {
-  return checkCount(props, checkAccept(props, filesSelected), files)
-}
-
-function checkAccept(props: UploadProps, filesSelected: File[]) {
-  if (!props.accept) {
-    return
-  }
-  return filesSelected
-}
-
-function checkCount(props: UploadProps, filesSelected: File[], files: UploadFile[]) {
-  if (!props.maxCount) {
-    return getFormatFiles(filesSelected, props, 'selected')
-  }
-  // 当为 1 时，始终用最新上传的文件代替当前文件
-  if (props.maxCount === 1) {
-    return getFormatFiles(filesSelected.slice(0, 1), props, 'selected')
-  }
-  const remainder = props.maxCount - files.length
-  if (remainder <= 0) {
-    getFormatFiles(filesSelected, props, 'illegal')
-    return []
-  }
-  if (remainder >= filesSelected.length) {
-    return getFormatFiles(filesSelected, props, 'selected')
-  }
-  const allowed = getFormatFiles(filesSelected.slice(0, remainder), props, 'selected')
-  getFormatFiles(filesSelected.slice(remainder), props, 'illegal')
-  return allowed
+  updateFilesSelected(files)
 }
 
 // 文件对象初始化
@@ -189,7 +188,7 @@ function getFormatFiles(files: File[], props: UploadProps, status: UploadFileSta
   })
 }
 
-function getHandledFiles(handleResult: boolean | UploadFile[], allowedFiles: UploadFile[]) {
+function getFilesHandled(handleResult: boolean | File[], allowedFiles: File[]) {
   if (handleResult === true) {
     return allowedFiles
   }

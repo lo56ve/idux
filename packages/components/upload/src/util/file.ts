@@ -69,3 +69,43 @@ export function setFileStatus(
   file.status = status
   onFileStatusChange && callEmit(onFileStatusChange, file)
 }
+
+export function getFilesAcceptAllow(filesSelected: File[], accept?: string[]): File[] {
+  if (!accept || accept.length === 0) {
+    return filesSelected
+  }
+  return filesSelected.filter(file => {
+    const extension = file.name.indexOf('.') > -1 ? `.${file.name.split('.').pop()}` : ''
+    const baseType = file.type.replace(/\/.*$/, '')
+    return accept.some(type => {
+      if (type.startsWith('.')) {
+        return extension === type
+      }
+      if (/\/\*$/.test(type)) {
+        return baseType === type.replace(/\/\*$/, '')
+      }
+      if (/^[^/]+\/[^/]+$/.test(type)) {
+        return file.type === type
+      }
+      return false
+    })
+  })
+}
+
+export function getFilesCountAllow(filesSelected: File[], curFilesCount: number, maxCount?: number): File[] {
+  if (!maxCount) {
+    return filesSelected
+  }
+  // 当为 1 时，始终用最新上传的文件代替当前文件
+  if (maxCount === 1) {
+    return filesSelected.slice(0, 1)
+  }
+  const remainder = maxCount - curFilesCount
+  if (remainder <= 0) {
+    return []
+  }
+  if (remainder >= filesSelected.length) {
+    return filesSelected
+  }
+  return filesSelected.slice(0, remainder)
+}

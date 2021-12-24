@@ -76,9 +76,9 @@ export const uploadProps = {
   requestHeaders: IxPropTypes.object<UploadRequestHeader>(),
   requestMethod: IxPropTypes.oneOf(['POST', 'PUT', 'PATCH', 'post', 'put', 'patch']),
   'onUpdate:files': IxPropTypes.emit<(fileList: UploadFile[]) => void>(),
-  onSelect: IxPropTypes.emit<(file: UploadFile[]) => boolean | UploadFile[] | Promise<boolean | UploadFile[]>>(),
-  onFileStatusChange: IxPropTypes.emit<(file: UploadFile) => void>(),
+  onSelect: IxPropTypes.emit<(file: File[]) => boolean | File[] | Promise<boolean | File[]>>(),
   onBeforeUpload: IxPropTypes.emit<(file: RawFile) => boolean | RawFile | Promise<boolean | RawFile>>(),
+  onFileStatusChange: IxPropTypes.emit<(file: UploadFile) => void>(),
   onRequestChange: IxPropTypes.emit<(option: UploadRequestChangeOption) => void>(),
 }
 export type UploadProps = IxInnerPropTypes<typeof uploadProps>

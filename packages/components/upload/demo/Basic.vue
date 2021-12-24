@@ -1,5 +1,12 @@
 <template>
-  <IxUpload v-model:files="files" accept=".png" action="/upload" :onFileStatusChange="onFileStatusChange">
+  <IxUpload
+    v-model:files="files"
+    accept=".png"
+    dragable
+    multiple
+    :action="action"
+    :onFileStatusChange="onFileStatusChange"
+  >
     <div style="height: 80px; width: 80px"> sdfsdfsdfsdf </div>
     <template #list>
       <IxUploadList
@@ -25,10 +32,19 @@ import { ref, watchEffect } from 'vue'
 //   },
 // ])
 
+const action = () => Promise.resolve('/upload')
 const files = ref([])
 const icon = ref({ file: true, download: true, retry: true, remove: true, preview: true })
 const onDownload = file => {
   console.log('download', file)
+}
+
+const requestData = file => {
+  console.log('requestData', file)
+  return {
+    a: 1,
+    b: 2,
+  }
 }
 
 const onPreview = file => {
