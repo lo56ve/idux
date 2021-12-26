@@ -13,8 +13,8 @@ import { IxPropTypes } from '@idux/cdk/utils'
 type DataType = Record<string, unknown>
 export type UploadRequestHeader = Record<string, string>
 export type UploadRequestMethod = 'POST' | 'PUT' | 'PATCH' | 'post' | 'put' | 'patch'
-export type UploadRequestStatus = 'loadstart' | 'progress' | 'abort' | 'error' | 'load' | 'timeout' | 'loadend'
-export type UploadFileStatus = 'illegal' | 'selected' | 'uploading' | 'error' | 'success' | 'abort'
+export type UploadRequestStatus = 'loadstart' | 'progress' | 'abort' | 'error' | 'loadend'
+export type UploadFileStatus = 'selected' | 'uploading' | 'error' | 'success' | 'abort'
 export type UploadListType = 'text' | 'image' | 'imageCard'
 export type UploadIconType = 'file' | 'preview' | 'download' | 'remove' | 'retry'
 export interface UploadProgressEvent extends ProgressEvent {
@@ -72,7 +72,10 @@ export const uploadProps = {
   parallel: IxPropTypes.bool,
   customRequest: IxPropTypes.func<(option: UploadRequestOption) => { abort: () => void }>(),
   withCredentials: IxPropTypes.bool,
-  requestData: IxPropTypes.oneOfType<DataType | ((file: UploadFile) => DataType | Promise<DataType>)>([{}, () => ({})]),
+  requestData: IxPropTypes.oneOfType<DataType | ((file: UploadFile) => DataType | Promise<DataType>)>([
+    Object,
+    IxPropTypes.func<(file: UploadFile) => DataType | Promise<DataType>>(),
+  ]),
   requestHeaders: IxPropTypes.object<UploadRequestHeader>(),
   requestMethod: IxPropTypes.oneOf(['POST', 'PUT', 'PATCH', 'post', 'put', 'patch']),
   'onUpdate:files': IxPropTypes.emit<(fileList: UploadFile[]) => void>(),

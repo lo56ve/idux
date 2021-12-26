@@ -70,13 +70,13 @@ function renderItem(
   const { retryNode, downloadNode, removeNode } = renderOprIcon(file, icons, cpmClasses, fileOperation, locale)
   return (
     <li class={fileClasses}>
-      <span>
+      <span class={`${cpmClasses.value}-text-info`}>
         {renderIcon(icons.value.file, { class: `${cpmClasses.value}-icon-file` })}
         <span class={fileNameClasses} onClick={() => showPreview(file.status) && fileOperation.preview(file)}>
           {file.name}
         </span>
       </span>
-      <span>
+      <span class={`${cpmClasses.value}-icon-wrap`}>
         <IxTooltip title={file.errorTip}>{showErrorTip(file.status, file.errorTip) && errorTipNode}</IxTooltip>
         {showRetry(file.status) && retryNode}
         {showDownload(file.status) && downloadNode}

@@ -5,7 +5,7 @@
  * found in the LICENSE file at https://github.com/IDuxFE/idux/blob/main/LICENSE
  */
 
-import type { UploadFile, UploadProgressEvent, UploadProps, UploadRequestOption } from '../types'
+import type { RawFile, UploadFile, UploadProgressEvent, UploadProps, UploadRequestOption } from '../types'
 import type { VKey } from '@idux/cdk/utils'
 import type { Ref } from 'vue'
 
@@ -44,7 +44,7 @@ export function useRequest(props: UploadProps): UploadRequest {
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
         status: 'abort',
-        file: curFile,
+        file: { ...curFile },
       })
   }
 
@@ -61,26 +61,12 @@ export function useRequest(props: UploadProps): UploadRequest {
           await upload(file)
           return
         }
-        if (result instanceof File) {
-          await upload({ ...file, raw: result })
+        if (typeof result === 'object' && result) {
+          await upload({ ...file, raw: result as RawFile })
         }
       } catch (e) {
         setFileStatus(file, 'error', props.onFileStatusChange)
       }
-
-      // before
-      //   .then(result => {
-      //     if (result === true) {
-      //       upload(file)
-      //       return
-      //     }
-      //     if (result instanceof File) {
-      //       upload({ ...file, raw: result })
-      //     }
-      //   })
-      //   .catch(() => {
-      //     setFileStatus(file, 'error', props.onFileStatusChange)
-      //   })
     } else if (before === true) {
       await upload(file)
     }
@@ -104,6 +90,11 @@ export function useRequest(props: UploadProps): UploadRequest {
     const uploadHttpRequest = props.customRequest ?? defaultUpload
 
     setFileStatus(file, 'uploading', props.onFileStatusChange)
+    props.onRequestChange &&
+      callEmit(props.onRequestChange, {
+        status: 'loadstart',
+        file: { ...file },
+      })
     file.percent = 0
     aborts.set(file.uid, uploadHttpRequest(requestOption)?.abort ?? (() => {}))
     fileUploading.value.push(file)
@@ -118,7 +109,7 @@ export function useRequest(props: UploadProps): UploadRequest {
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
         status: 'progress',
-        file: curFile,
+        file: { ...curFile },
         e,
       })
   }
@@ -132,7 +123,7 @@ export function useRequest(props: UploadProps): UploadRequest {
     setFileStatus(curFile, 'error', props.onFileStatusChange)
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
-        file: curFile,
+        file: { ...curFile },
         status: 'error',
       })
   }
@@ -148,7 +139,7 @@ export function useRequest(props: UploadProps): UploadRequest {
     props.onRequestChange &&
       callEmit(props.onRequestChange, {
         status: 'loadend',
-        file: curFile,
+        file: { ...curFile },
       })
   }
 

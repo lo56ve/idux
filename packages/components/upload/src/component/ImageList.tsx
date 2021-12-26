@@ -77,7 +77,7 @@ function renderItem(
           {file.name}
         </span>
       </div>
-      <div>
+      <div class={`${cpmClasses.value}-icon-wrap`}>
         <IxTooltip title={file.errorTip}>{showErrorTip(file.status, file.errorTip) && errorTipNode}</IxTooltip>
         {showRetry(file.status) && retryNode}
         {showDownload(file.status) && downloadNode}

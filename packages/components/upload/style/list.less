@@ -54,13 +54,17 @@
         }
       }
 
-      .@{upload-prefix}-icon-opr {
-        cursor: pointer;
-        margin: @upload-icon-margin;
-        color: @color-graphite-base;
+      .@{upload-prefix}-icon-wrap {
+        max-width: @upload-icon-wrap-max-width;
 
-        &:hover {
-          color: @color-graphite-d10;
+        .@{upload-prefix}-icon-opr {
+          cursor: pointer;
+          margin: @upload-icon-margin;
+          color: @color-graphite-base;
+
+          &:hover {
+            color: @color-graphite-d10;
+          }
         }
       }
     }
@@ -80,6 +84,10 @@
 
     .@{upload-prefix}-file {
       border-bottom: @upload-file-border-bottom;
+
+      .@{upload-prefix}-text-info {
+        flex: 1;
+      }
 
       &:last-child {
         border: 0;
@@ -105,6 +113,7 @@
     .@{upload-prefix}-thumb-info {
       display: inline-flex;
       align-items: center;
+      flex: 1;
 
       .@{upload-prefix}-thumb {
         display: inline-block;

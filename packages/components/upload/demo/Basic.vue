@@ -1,10 +1,12 @@
 <template>
   <IxUpload
     v-model:files="files"
-    accept=".png"
     dragable
     multiple
     :action="action"
+    :requestData="requestData"
+    :requestHeaders="requestHeaders"
+    :onRequestChange="onRequestChange"
     :onFileStatusChange="onFileStatusChange"
   >
     <div style="height: 80px; width: 80px"> sdfsdfsdfsdf </div>
@@ -47,6 +49,11 @@ const requestData = file => {
   }
 }
 
+const requestHeaders = {
+  auth: '123',
+  sdfsf: true,
+}
+
 const onPreview = file => {
   console.log('preview', file)
 }
@@ -64,6 +71,10 @@ const onRemove = file => {
 
 const onSelect = file => {
   console.log('select', file)
+}
+
+const onRequestChange = option => {
+  console.log('requestchange', option)
 }
 
 watchEffect(() => {
