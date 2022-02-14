@@ -41,7 +41,7 @@ export default defineComponent({
 
     return () => (
       <ul class={classes.value} {...events.value}>
-        {coverChildren(props.data.children)}
+        {coverChildren(props.data.children, true)}
       </ul>
     )
   },

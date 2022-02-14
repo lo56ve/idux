@@ -17,8 +17,9 @@ import MenuDivider from './MenuDivider'
 import MenuItem from './MenuItem'
 import MenuItemGroup from './MenuItemGroup'
 import MenuSub from './menu-sub/MenuSub'
+import MenuSubFlat from './menu-sub/MenuSubFlat'
 
-export function coverChildren(data?: MenuData[]): VNode[] {
+export function coverChildren(data?: MenuData[], flat?: boolean): VNode[] {
   if (!data || data.length === 0) {
     return []
   }
@@ -29,7 +30,12 @@ export function coverChildren(data?: MenuData[]): VNode[] {
     if (!type || type === 'item') {
       nodes.push(<MenuItem key={item.key} data={item}></MenuItem>)
     } else if (type === 'sub') {
-      nodes.push(<MenuSub key={item.key} data={item}></MenuSub>)
+      const itemVNode = flat ? (
+        <MenuSubFlat key={item.key} data={item}></MenuSubFlat>
+      ) : (
+        <MenuSub key={item.key} data={item}></MenuSub>
+      )
+      nodes.push(itemVNode)
     } else if (type === 'itemGroup') {
       nodes.push(<MenuItemGroup key={item.key} data={item}></MenuItemGroup>)
     } else if (type === 'divider') {
